@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0b0f17" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>VenePetrol Intel 3D · +300 Bloques, +60 Operadoras & OFAC</title>
+  <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    :root {
+      --bg: #0b0f17;
+      --panel: #131a26;
+      --panel-2: #1a2333;
+      --border: #263248;
+      --accent: #f59e0b;
+      --accent-2: #38bdf8;
+      --vip: #a855f7;
+      --nat: #ea580c;
+      --office: #3b82f6;
+      --sec: #15803d;
+      --fuel: #dc2626;
+      --health: #e11d48;
+      --term: #94a3b8;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --success: #10b981;
+      --danger: #ef4444;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+    body { background: var(--bg); color: var(--text); display: flex; flex-direction: column; min-height: 100vh; overflow-x: hidden; }
+
+    /* Header */
+    header {
+      background: var(--panel); border-bottom: 1px solid var(--border);
+      padding: 9px 14px; display: flex; flex-wrap: wrap; gap: 8px;
+      align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 1100;
+    }
+    .brand-group { display: flex; align-items: center; gap: 10px; }
+    .menu-toggle {
+      background: var(--panel-2); border: 1px solid var(--border); color: var(--accent);
+      padding: 8px 11px; border-radius: 6px; font-size: 15px; cursor: pointer;
+    }
+    .brand h1 { font-size: 16px; font-weight: 800; letter-spacing: 0.3px; }
+    .brand span { color: var(--accent); }
+    .badge-pro { background: var(--accent); color: #000; font-weight: 800; font-size: 10px; padding: 2px 6px; border-radius: 4px; }
+
+    .actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+    select.lang-selector, select.op-selector {
+      background: var(--panel-2); color: var(--text); border: 1px solid var(--border);
+      padding: 6px 8px; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: 600;
+    }
+    select.op-selector { max-width: 195px; border-color: var(--accent-2); }
+    button {
+      background: var(--panel-2); color: var(--text); border: 1px solid var(--border);
+      padding: 7px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 5px; transition: 0.15s;
+    }
+    button:hover { border-color: var(--accent); }
+    button.primary { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 700; }
+    button.vip-btn { background: linear-gradient(135deg, #9333ea, #6b21a8); color: #fff; border-color: #a855f7; }
+    button.quote-btn { background: #10b981; color: #000; border-color: #10b981; font-weight: 700; }
+    button.ofac-btn { background: #0284c7; color: #fff; border-color: #38bdf8; }
+    button.btn-3d.active { background: var(--accent-2); color: #000; border-color: var(--accent-2); font-weight: 800; }
+
+    /* Side Drawer Menu */
+    .drawer-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.72); z-index: 1500; }
+    .side-drawer {
+      position: fixed; top: 0; left: -300px; width: 285px; height: 100vh;
+      background: var(--panel); border-right: 1px solid var(--border);
+      z-index: 1600; transition: left 0.25s ease; display: flex; flex-direction: column;
+      overflow-y: auto; padding: 14px;
+    }
+    .side-drawer.open { left: 0; }
+    .drawer-head {
+      display: flex; justify-content: space-between; align-items: center;
+      padding-bottom: 12px; border-bottom: 1px solid var(--border); margin-bottom: 12px;
+    }
+    .drawer-section-title {
+      font-size: 10px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted);
+      margin: 10px 0 6px 4px; font-weight: 700;
+    }
+    .drawer-item {
+      width: 100%; justify-content: flex-start; background: transparent; border: none;
+      padding: 8px 10px; border-radius: 6px; font-size: 12.5px; color: var(--text); text-align: left;
+    }
+    .drawer-item:hover, .drawer-item.active { background: var(--panel-2); color: var(--accent); }
+    .drawer-item i { width: 18px; text-align: center; }
+
+    /* KPIs */
+    .kpis {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(125px, 1fr));
+      gap: 8px; padding: 8px 14px; background: #0e1420; border-bottom: 1px solid var(--border);
+    }
+    .kpi { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 7px 10px; }
+    .kpi label { font-size: 9.5px; color: var(--muted); text-transform: uppercase; display: block; }
+    .kpi .val { font-size: 15px; font-weight: 800; margin-top: 2px; color: var(--accent-2); }
+
+    /* Search & Filter Bar */
+    .search-category-bar {
+      padding: 8px 14px; background: var(--panel); border-bottom: 1px solid var(--border);
+      display: flex; flex-wrap: wrap; gap: 7px; align-items: center;
+    }
+    .search-input-wrapper { flex: 1; min-width: 190px; position: relative; }
+    .search-input-wrapper input {
+      width: 100%; background: var(--bg); border: 1px solid var(--border); color: #fff;
+      padding: 7px 10px 7px 30px; border-radius: 6px; font-size: 12.5px;
+    }
+    .search-input-wrapper i { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--muted); }
+    .category-filters { display: flex; gap: 5px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; width: 100%; }
+    .category-filters::-webkit-scrollbar { display: none; }
+    .cat-btn {
+      white-space: nowrap; border-radius: 20px; padding: 5px 11px; font-size: 11px;
+      background: var(--panel-2); color: var(--text); border: 1px solid var(--border);
+    }
+    .cat-btn.active { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 700; }
+
+    /* Main Grid */
+    .main-grid { display: grid; grid-template-columns: 1fr; flex: 1; }
+    @media (min-width: 920px) { .main-grid { grid-template-columns: 1.4fr 1fr; } }
+    .map-wrapper { position: relative; width: 100%; height: 420px; }
+    @media (min-width: 920px) { .map-wrapper { height: calc(100vh - 225px); } }
+    #map { width: 100%; height: 100%; }
+
+    .map-legend {
+      position: absolute; bottom: 12px; left: 12px; z-index: 10;
+      background: rgba(11, 15, 23, 0.9); border: 1px solid var(--border);
+      padding: 8px 10px; border-radius: 8px; font-size: 10.5px; backdrop-filter: blur(4px);
+    }
+    .legend-row { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; }
+    .legend-dot { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+
+    .sidebar { padding: 12px 14px; overflow-y: auto; max-height: calc(100vh - 225px); display: flex; flex-direction: column; gap: 10px; }
+
+    .sponsor-box {
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      border: 1px solid var(--accent); border-radius: 8px; padding: 10px;
+    }
+    .sponsor-tag { font-size: 10px; color: var(--accent); font-weight: 800; text-transform: uppercase; letter-spacing: 0.6px; }
+    .sponsor-box h3 { font-size: 13.5px; margin: 3px 0; }
+    .sponsor-box p { font-size: 11.5px; color: var(--muted); line-height: 1.4; }
+
+    .card-list { display: flex; flex-direction: column; gap: 8px; }
+    .item-card {
+      background: var(--panel); border: 1px solid var(--border); border-radius: 8px;
+      padding: 10px; cursor: pointer; transition: 0.15s;
+    }
+    .item-card:hover { border-color: var(--accent-2); }
+    .item-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 5px; gap: 6px; }
+    .item-head h4 { font-size: 13px; color: #fff; line-height: 1.3; }
+    .cat-badge { font-size: 9px; padding: 3px 7px; border-radius: 10px; font-weight: 700; text-transform: uppercase; white-space: nowrap; }
+    .cat-badge.petroleo { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); }
+    .cat-badge.oficinas { background: rgba(59,130,246,0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.3); }
+    .cat-badge.internacional { background: rgba(168,85,247,0.18); color: #d8b4fe; border: 1px solid rgba(168,85,247,0.35); }
+    .cat-badge.nacional { background: rgba(234,88,12,0.18); color: #fdba74; border: 1px solid rgba(234,88,12,0.35); }
+    .cat-badge.seguridad { background: rgba(21,128,61,0.2); color: #86efac; border: 1px solid rgba(21,128,61,0.35); }
+    .cat-badge.combustible { background: rgba(220,38,38,0.18); color: #fca5a5; border: 1px solid rgba(220,38,38,0.35); }
+    .cat-badge.salud { background: rgba(225,29,72,0.18); color: #fda4af; border: 1px solid rgba(225,29,72,0.35); }
+    .cat-badge.terminal { background: rgba(148,163,184,0.18); color: #cbd5e1; border: 1px solid rgba(148,163,184,0.35); }
+    .cat-badge.comercio { background: rgba(16,185,129,0.15); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.3); }
+
+    .ofac-pill {
+      display: inline-block; font-size: 9.5px; font-weight: 700; padding: 2px 6px; border-radius: 4px;
+      background: rgba(2, 132, 199, 0.2); color: #7dd3fc; border: 1px solid rgba(56, 189, 248, 0.35);
+      margin-bottom: 4px;
+    }
+    .ofac-pill.restricted {
+      background: rgba(239, 68, 68, 0.18); color: #fca5a5; border-color: rgba(239, 68, 68, 0.35);
+    }
+
+    .item-meta { font-size: 11px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 5px; }
+    .item-desc { font-size: 11.5px; color: var(--text); background: var(--panel-2); padding: 7px 9px; border-radius: 6px; line-height: 1.45; }
+    .signal-tag { display: inline-block; margin-top: 5px; font-size: 10.5px; color: #38bdf8; background: rgba(56,189,248,0.1); padding: 3px 7px; border-radius: 4px; }
+
+    .vip-lock-box {
+      background: linear-gradient(135deg, rgba(147,51,234,0.16), rgba(30,41,59,0.9));
+      border: 1px dashed #a855f7; border-radius: 6px; padding: 8px; margin-top: 5px;
+      display: flex; flex-direction: column; gap: 6px;
+    }
+    .vip-lock-box p { font-size: 11px; color: #e9d5ff; }
+
+    /* MapLibre Popup Override */
+    .maplibregl-popup-content {
+      background: #0f172a !important; color: #f1f5f9 !important;
+      border: 1px solid #334155 !important; border-radius: 8px !important;
+      padding: 10px 12px !important; font-size: 12px !important; max-width: 265px !important;
+    }
+    .maplibregl-popup-close-button { color: #94a3b8 !important; font-size: 16px !important; }
+    .maplibregl-popup-tip { border-top-color: #0f172a !important; }
+
+    /* Modals */
+    .modal-backdrop {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.82);
+      z-index: 2000; align-items: center; justify-content: center; padding: 14px;
+    }
+    .modal {
+      background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+      width: 100%; max-width: 540px; padding: 16px; max-height: 90vh; overflow-y: auto;
+    }
+    .modal h2 { font-size: 16px; margin-bottom: 8px; color: var(--accent); display: flex; align-items: center; gap: 8px; }
+    .field { margin-bottom: 9px; }
+    .field label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 3px; }
+    .field input, .field select, .field textarea {
+      width: 100%; background: var(--bg); border: 1px solid var(--border);
+      color: #fff; padding: 8px; border-radius: 6px; font-size: 13px;
+    }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .ficha-item { background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 8px; }
+  </style>
+</head>
+<body>
+
+  <!-- Side Drawer Menu -->
+  <div class="drawer-backdrop" id="drawerBackdrop" onclick="toggleDrawer(false)"></div>
+  <nav class="side-drawer" id="sideDrawer">
+    <div class="drawer-head">
+      <div>
+        <strong style="font-size:15px;">VenePetrol <span style="color:var(--accent)">Intel 3D</span></strong>
+        <div style="font-size:10px; color:var(--muted);">+300 Bloques · +60 Operadoras · OFAC</div>
+      </div>
+      <button onclick="toggleDrawer(false)" style="padding:5px 9px;"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+
+    <div class="drawer-section-title">Inteligencia & Monetización</div>
+    <button class="drawer-item" onclick="toggleDrawer(false); openFichasModal();">
+      <i class="fa-solid fa-file-contract" style="color:var(--vip);"></i> <span>Fichas Técnicas Empresas (VIP)</span>
+    </button>
+    <button class="drawer-item" onclick="toggleDrawer(false); openOfacModal();">
+      <i class="fa-solid fa-scale-balanced" style="color:var(--accent-2);"></i> <span>Monitor Licencias OFAC (2026)</span>
+    </button>
+    <button class="drawer-item" onclick="toggleDrawer(false); openQuoteModal();">
+      <i class="fa-solid fa-cart-shopping" style="color:var(--success);"></i> <span>Cotizar Material / Servicio en Campo</span>
+    </button>
+    <button class="
