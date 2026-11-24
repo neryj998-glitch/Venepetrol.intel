@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0b0f17" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>VenePetrol Intel B2B · Mapa Petrolero & Procura</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    :root {
+      --bg: #0b0f17;
+      --panel: #131a26;
+      --panel-2: #1a2333;
+      --border: #263248;
+      --accent: #f59e0b;
+      --accent-2: #38bdf8;
+      --vip: #a855f7;
+      --nat: #ea580c;
+      --office: #3b82f6;
+      --sec: #15803d;
+      --fuel: #dc2626;
+      --health: #e11d48;
+      --term: #94a3b8;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --success: #10b981;
+      --danger: #ef4444;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+    body { background: var(--bg); color: var(--text); display: flex; flex-direction: column; min-height: 100vh; overflow-x: hidden; }
+
+    /* Header */
+    header {
+      background: var(--panel); border-bottom: 1px solid var(--border);
+      padding: 10px 14px; display: flex; flex-wrap: wrap; gap: 8px;
+      align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 1100;
+    }
+    .brand-group { display: flex; align-items: center; gap: 10px; }
+    .menu-toggle {
+      background: var(--panel-2); border: 1px solid var(--border); color: var(--accent);
+      padding: 8px 11px; border-radius: 6px; font-size: 15px; cursor: pointer;
+    }
+    .brand h1 { font-size: 16px; font-weight: 800; letter-spacing: 0.3px; }
+    .brand span { color: var(--accent); }
+    .badge-pro { background: var(--accent); color: #000; font-weight: 800; font-size: 10px; padding: 2px 6px; border-radius: 4px; }
+
+    .actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+    select.lang-selector {
+      background: var(--panel-2); color: var(--text); border: 1px solid var(--border);
+      padding: 6px; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: 600;
+    }
+    button {
+      background: var(--panel-2); color: var(--text); border: 1px solid var(--border);
+      padding: 7px 11px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 6px; transition: 0.15s;
+    }
+    button:hover { border-color: var(--accent); }
+    button.primary { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 700; }
+    button.vip-btn { background: linear-gradient(135deg, #9333ea, #6b21a8); color: #fff; border-color: #a855f7; }
+    button.quote-btn { background: #10b981; color: #000; border-color: #10b981; font-weight: 700; }
+
+    /* Side Drawer Menu */
+    .drawer-backdrop {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.72); z-index: 1500;
+    }
+    .side-drawer {
+      position: fixed; top: 0; left: -300px; width: 285px; height: 100vh;
+      background: var(--panel); border-right: 1px solid var(--border);
+      z-index: 1600; transition: left 0.25s ease; display: flex; flex-direction: column;
+      overflow-y: auto; padding: 14px;
+    }
+    .side-drawer.open { left: 0; }
+    .drawer-head {
+      display: flex; justify-content: space-between; align-items: center;
+      padding-bottom: 12px; border-bottom: 1px solid var(--border); margin-bottom: 12px;
+    }
+    .drawer-section-title {
+      font-size: 10px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted);
+      margin: 10px 0 6px 4px; font-weight: 700;
+    }
+    .drawer-item {
+      width: 100%; justify-content: flex-start; background: transparent; border: none;
+      padding: 9px 10px; border-radius: 6px; font-size: 13px; color: var(--text); text-align: left;
+    }
+    .drawer-item:hover, .drawer-item.active { background: var(--panel-2); color: var(--accent); }
+    .drawer-item i { width: 18px; text-align: center; }
+
+    /* KPIs */
+    .kpis {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+      gap: 8px; padding: 10px 14px; background: #0e1420; border-bottom: 1px solid var(--border);
+    }
+    .kpi { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; }
+    .kpi label { font-size: 10px; color: var(--muted); text-transform: uppercase; display: block; }
+    .kpi .val { font-size: 17px; font-weight: 800; margin-top: 2px; color: var(--accent-2); }
+
+    /* Search & Filter Bar */
+    .search-category-bar {
+      padding: 9px 14px; background: var(--panel); border-bottom: 1px solid var(--border);
+      display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+    }
+    .search-input-wrapper { flex: 1; min-width: 210px; position: relative; }
+    .search-input-wrapper input {
+      width: 100%; background: var(--bg); border: 1px solid var(--border); color: #fff;
+      padding: 8px 12px 8px 32px; border-radius: 6px; font-size: 13px;
+    }
+    .search-input-wrapper i { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--muted); }
+    .category-filters { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+    .category-filters::-webkit-scrollbar { display: none; }
+    .cat-btn {
+      white-space: nowrap; border-radius: 20px; padding: 5px 12px; font-size: 11px;
+      background: var(--panel-2); color: var(--text); border: 1px solid var(--border);
+    }
+    .cat-btn.active { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 700; }
+
+    /* Main Grid */
+    .main-grid { display: grid; grid-template-columns: 1fr; flex: 1; }
+    @media (min-width: 920px) { .main-grid { grid-template-columns: 1.35fr 1fr; } }
+    #map { width: 100%; height: 400px; z-index: 1; }
+    @media (min-width: 920px) { #map { height: calc(100vh - 215px); } }
+
+    .sidebar { padding: 12px 14px; overflow-y: auto; max-height: calc(100vh - 215px); display: flex; flex-direction: column; gap: 10px; }
+
+    .sponsor-box {
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      border: 1px solid var(--accent); border-radius: 8px; padding: 11px;
+    }
+    .sponsor-tag { font-size: 10px; color: var(--accent); font-weight: 800; text-transform: uppercase; letter-spacing: 0.6px; }
+    .sponsor-box h3 { font-size: 14px; margin: 3px 0; }
+    .sponsor-box p { font-size: 12px; color: var(--muted); line-height: 1.4; }
+
+    .card-list { display: flex; flex-direction: column; gap: 9px; }
+    .item-card {
+      background: var(--panel); border: 1px solid var(--border); border-radius: 8px;
+      padding: 11px; cursor: pointer; transition: 0.15s;
+    }
+    .item-card:hover { border-color: var(--accent-2); }
+    .item-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 5px; gap: 6px; }
+    .item-head h4 { font-size: 13.5px; color: #fff; line-height: 1.3; }
+    .cat-badge { font-size: 9px; padding: 3px 7px; border-radius: 10px; font-weight: 700; text-transform: uppercase; white-space: nowrap; }
+    .cat-badge.petroleo { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); }
+    .cat-badge.oficinas { background: rgba(59,130,246,0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.3); }
+    .cat-badge.internacional { background: rgba(168,85,247,0.18); color: #d8b4fe; border: 1px solid rgba(168,85,247,0.35); }
+    .cat-badge.nacional { background: rgba(234,88,12,0.18); color: #fdba74; border: 1px solid rgba(234,88,12,0.35); }
+    .cat-badge.seguridad { background: rgba(21,128,61,0.2); color: #86efac; border: 1px solid rgba(21,128,61,0.35); }
+    .cat-badge.combustible { background: rgba(220,38,38,0.18); color: #fca5a5; border: 1px solid rgba(220,38,38,0.35); }
+    .cat-badge.salud { background: rgba(225,29,72,0.18); color: #fda4af; border: 1px solid rgba(225,29,72,0.35); }
+    .cat-badge.terminal { background: rgba(148,163,184,0.18); color: #cbd5e1; border: 1px solid rgba(148,163,184,0.35); }
+    .cat-badge.comercio { background: rgba(16,185,129,0.15); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.3); }
+
+    .item-meta { font-size: 11.5px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 6px; }
+    .item-desc { font-size: 11.5px; color: var(--text); background: var(--panel-2); padding: 7px 9px; border-radius: 6px; line-height: 1.45; }
+    .signal-tag { display: inline-block; margin-top: 5px; font-size: 10.5px; color: #38bdf8; background: rgba(56,189,248,0.1); padding: 3px 7px; border-radius: 4px; }
+
+    .vip-lock-box {
+      background: linear-gradient(135deg, rgba(147,51,234,0.16), rgba(30,41,59,0.9));
+      border: 1px dashed #a855f7; border-radius: 6px; padding: 9px; margin-top: 5px;
+      display: flex; flex-direction: column; gap: 6px;
+    }
+    .vip-lock-box p { font-size: 11px; color: #e9d5ff; }
+
+    /* Modals */
+    .modal-backdrop {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.82);
+      z-index: 2000; align-items: center; justify-content: center; padding: 14px;
+    }
+    .modal {
+      background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+      width: 100%; max-width: 520px; padding: 16px; max-height: 90vh; overflow-y: auto;
+    }
+    .modal h2 { font-size: 16px; margin-bottom: 8px; color: var(--accent); display: flex; align-items: center; gap: 8px; }
+    .field { margin-bottom: 9px; }
+    .field label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 3px; }
+    .field input, .field select, .field textarea {
+      width: 100%; background: var(--bg); border: 1px solid var(--border);
+      color: #fff; padding: 8px; border-radius: 6px; font-size: 13px;
+    }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .ficha-item {
+      background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px;
+      padding: 10px; margin-bottom: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Side Drawer Backdrop & Menu -->
+  <div class="drawer-backdrop" id="drawerBackdrop" onclick="toggleDrawer(false)"></div>
+  <nav class="side-drawer" id="sideDrawer">
+    <div class="drawer-head">
+      <div>
+        <strong style="font-size:15px;">VenePetrol <span style="color:var(--accent)">Intel</span></strong>
+        <div style="font-size:10px; color:var(--muted);">Directorio & Inteligencia B2B</div>
+      </div>
+      <button onclick="toggleDrawer(false)" style="padding:5px 9px;"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+
+    <div class="drawer-section-title" data-i18n="menuMain">Herramientas Comerciales</div>
+    <button class="drawer-item" onclick="toggleDrawer(false); openFichasModal();">
+      <i class="fa-solid fa-file-contract" style="color:var(--vip);"></i> <span data-i18n="menuFichas">Fichas Técnicas Empresas (VIP)</span>
+    </button>
+    <button class="drawer-item" onclick="toggleDrawer(false); openQuoteModal();">
+      <i class="fa-solid fa-cart-shopping" style="color:var(--success);"></i> <span data-i18n="menuQuote">Cotizar Material / Servicio en Campo</span>
+    </button>
+    <button class="drawer-item" onclick="toggleDrawer(false); openProModal();">
+      <i class="fa-solid fa-crown" style="color:var(--accent);"></i> <span data-i18n="menuVip">Activar Plan VIP / Publicar Negocio</span>
+    </button>
+    <button class="drawer-item" id="btnInstallApp" onclick="installPWA()">
+      <i class="fa-solid fa-mobile-screen-button" style="color:var(--accent-2);"></i> <span data-i18n="menuInstall">Instalar App en Teléfono</span>
+    </button>
+
+    <div class="drawer-section-title" data-i18n="menuCats">Capas del Mapa Operativo</div>
+    <button class="drawer-item" onclick="selectFromDrawer('TODAS')"><i class="fa-solid fa-layer-group"></i> <span data-i18n="catAll">Todos los Registros</span></button>
+    <button class="drawer-item" onclick="selectFromDrawer('petroleo')"><i class="fa-solid fa-oil-well" style="color:#fbbf24;"></i> <span data-i18n="catPet">Campos Petroleros (28)</span></button>
+    <button class="drawer-item" onclick="selectFromDrawer('oficinas')"><i class="fa-solid fa-building" style="color:#60a5fa;"></i> <span data-i18n="catOff">Oficinas PDVSA (10)</span></button>
+    <button class="drawer-item" onclick="selectFromDrawer('internacional')"><i class="fa-solid fa-globe" style="color:#d8b4fe;"></i> <span data-i18n="catInt">Operadoras Internacionales (12)</span></button>
+    <button class="drawer-item" onclick="selectFromDrawer('nacional')"><i class="fa-solid fa-helmet-safety" style="color:#fdba74;"></i> <span data-i18n="catNat">Contratistas Nacionales (10)</span></button>
+    <button class="drawer-item" onclick="selectFromDrawer('combustible')"><i class="fa-solid fa-gas-pump" style="color:#fca5a5;"></i> <span data-i18n="catFuel">Estaciones de Servicio (Gasoil/Gas)</span></button>
+    <button class="drawer-item" onclick="selectFromDrawer('seguridad')"><i class="fa-solid fa-shield-halved" style="color:#86efac;"></i> <span data-i18n="catSec">Comandos GNB y Policía</span></button>
+    <button class="drawer-item" onclick="selectFromDrawer('salud')"><i class="fa-solid fa-hospital" style="color:#fda4af;"></i> <span data-i18n="catHealth">Hospitales, Clínicas y CDI</span></button>
+    <button class="drawer-item" onclick="selectFromDrawer('terminal')"><i class="fa-solid fa-bus" style="color:#cbd5e1;"></i> <span data-i18n="catTerm">Terminales Terrestres</span></button>
+    <button class="drawer-item" onclick="selectFromDrawer('comercio')"><i class="fa-solid fa-store" style="color:#6ee7b7;"></i> <span data-i18n="catBiz">Proveedores EPP / Repuestos / Comida</span></button>
+
+    <div class="drawer-section-title">Administración</div>
+    <button class="drawer-item" onclick="toggleDrawer(false); openAdmin();">
+      <i class="fa-solid fa-lock" style="color:var(--accent);"></i> <span>Panel Admin (Editar / Agregar)</span>
+    </button>
+  </nav>
+
+  <!-- Header -->
+  <header>
+    <div class="brand-group">
+      <button class="menu-toggle" onclick="toggleDrawer(true)" title="Abrir Menú"><i class="fa-solid fa-bars"></i></button>
+      <div class="brand">
+        <h1>VenePetrol <span>Intel</span></h1>
+        <span class="badge-pro">B2B · FAJA & NACIONAL</span>
+      </div>
+    </div>
+    <div class="actions">
+      <select class="lang-selector" id="langSel" onchange="toggleLanguage(this.value)">
+        <option value="es">🇪🇸 ES</option>
+        <option value="en">🇺🇸 EN</option>
+      </select>
+      <button class="vip-btn" onclick="openFichasModal()"><i class="fa-solid fa-file-contract"></i> <span data-i18n="btnFichas">Fichas VIP</span></button>
+      <button class="quote-btn" onclick="openQuoteModal()"><i class="fa-brands fa-whatsapp"></i> <span data-i18n="btnQuote">Cotizar</span></button>
+      <button class="primary" onclick="openAdmin()"><i class="fa-solid fa-lock"></i></button>
+    </div>
+  </header>
+
+  <!-- KPIs -->
+  <section class="kpis">
+    <div class="kpi"><label data-i18n="kpiNodes">Puntos Activos</label><div class="val" id="kpi-nodes">0</div></div>
+    <div class="kpi"><label data-i18n="kpiBpd">Prod. Ref (BPD)</label><div class="val" id="kpi-bpd">0</div></div>
+    <div class="kpi"><label data-i18n="kpiVipState">Estado Membresía</label><div class="val" id="kpi-vip" style="font-size:13px; color:#d8b4fe;">🔒 Invitado</div></div>
+    <div class="kpi"><label data-i18n="kpiFaja">Cobertura</label><div class="val" style="font-size:13px; color:#10b981;">Faja Orinoco + Nac.</div></div>
+  </section>
+
+  <!-- Search & Horizontal Filter Pills -->
+  <div class="search-category-bar">
+    <div class="search-input-wrapper">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <input type="text" id="searchInput" placeholder="Buscar campo, empresa, Movilnet/Digitel, gasoil, hospital..." data-i18n-placeholder="searchPl" oninput="render()">
+    </div>
+    <div class="category-filters" id="catBar">
+      <button class="cat-btn active" onclick="filterCategory('TODAS', this)">Todos</button>
+      <button class="cat-btn" onclick="filterCategory('petroleo', this)">Campos (28)</button>
+      <button class="cat-btn" onclick="filterCategory('oficinas', this)">PDVSA (10)</button>
+      <button class="cat-btn" onclick="filterCategory('internacional', this)">Internacionales (12)</button>
+      <button class="cat-btn" onclick="filterCategory('nacional', this)">Contratistas Nac. (10)</button>
+      <button class="cat-btn" onclick="filterCategory('combustible', this)">Gasolina/Gasoil</button>
+      <button class="cat-btn" onclick="filterCategory('seguridad', this)">GNB / Policía</button>
+      <button class="cat-btn" onclick="filterCategory('salud', this)">Hospitales/CDI</button>
+      <button class="cat-btn" onclick="filterCategory('terminal', this)">Terminales</button>
+      <button class="cat-btn" onclick="filterCategory('comercio', this)">Proveedores B2B</button>
+    </div>
+  </div>
+
+  <!-- Map & Sidebar Cards -->
+  <main class="main-grid">
+    <div id="map"></div>
+    <aside class="sidebar">
+      <div class="sponsor-box">
+        <div class="sponsor-tag" data-i18n="advTag">CENTRAL B2B · PROCURA & SUMINISTROS</div>
+        <h3 id="spTitle">Dotación EPP, Repuestos, Transporte & Paradores Faja del Orinoco</h3>
+        <p id="spDesc">¿Necesitas botas petroleras, bragas, repuestos, grúas o alimentación para cuadrillas? Cotiza directo con nuestra central o activa tu Plan VIP para ver fichas de procura.</p>
+        <div style="margin-top:8px; display:flex; gap:6px; flex-wrap:wrap;">
+          <button class="quote-btn" onclick="openQuoteModal()"><i class="fa-brands fa-whatsapp"></i> <span data-i18n="advQuote">Solicitar Cotización</span></button>
+          <button class="vip-btn" onclick="openProModal()"><i class="fa-solid fa-crown"></i> <span data-i18n="advVip">Acceso VIP / Anunciar</span></button>
+        </div>
+      </div>
+
+      <div id="nodesList" class="card-list"></div>
+    </aside>
+  </main>
+
+  <!-- Modal 1: Fichas Técnicas & Bloqueo VIP -->
+  <div class="modal-backdrop" id="fichasModal">
+    <div class="modal">
+      <h2><i class="fa-solid fa-file-contract" style="color:var(--vip);"></i> <span data-i18n="fichasTitle">Fichas Técnicas de Empresas (VIP)</span></h2>
+      <p style="font-size:12px; color:var(--muted); margin-bottom:10px;" data-i18n="fichasSub">
+        Operadoras internacionales, empresas mixtas y contratistas nacionales operando en Venezuela.
+      </p>
+
+      <div id="vipUnlockBar" style="background:var(--panel-2); border:1px solid var(--vip); border-radius:8px; padding:10px; margin-bottom:12px;">
+        <div style="font-size:12px; font-weight:700; color:#e9d5ff; margin-bottom:6px;">
+          🔒 ¿Ya pagaste tu suscripción VIP? Ingresa tu clave de acceso:
+        </div>
+        <div style="display:flex; gap:6px;">
+          <input type="text" id="vipCodeInput" placeholder="Clave VIP (Ej: VIP2026)" style="flex:1; background:var(--bg); border:1px solid var(--border); color:#fff; padding:7px; border-radius:6px; font-size:12px;" />
+          <button class="vip-btn" onclick="unlockVIP()">Desbloquear</button>
+        </div>
+        <div style="margin-top:8px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
+          <span style="font-size:11px; color:var(--muted);">¿Aún no tienes clave VIP?</span>
+          <button class="quote-btn" style="padding:5px 9px; font-size:11px;" onclick="window.open('https://wa.me/584121788766?text=Hola%20Jose%20Nery,%20quiero%20pagar%20mi%20suscripcion%20VIP%20en%20VenePetrol%20Intel%20para%20ver%20las%20fichas%20tecnicas%20de%20las%20empresas','_blank')">
+            <i class="fa-brands fa-whatsapp"></i> Pedir Clave por WhatsApp
+          </button>
+        </div>
+      </div>
+
+      <div id="fichasContainer"></div>
+
+      <div style="display:flex; justify-content:flex-end; margin-top:10px;">
+        <button onclick="closeModals()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 2: Solicitar Cotización en Campo (Para Contratistas/Compradores) -->
+  <div class="modal-backdrop" id="quoteModal">
+    <div class="modal">
+      <h2><i class="fa-solid fa-cart-shopping" style="color:var(--success);"></i> Solicitar Cotización / Procura en Campo</h2>
+      <p style="font-size:12px; color:var(--muted); margin-bottom:10px;">
+        Indica qué material, dotación EPP, repuesto, transporte o servicio de comida necesitas y en qué campo o estado te encuentras. Nuestro equipo te cotiza al instante por WhatsApp.
+      </p>
+      <div class="field"><label>Empresa o Contratista Solicitante</label><input id="qCompany" placeholder="Ej: Constructora Oriente C.A." /></div>
+      <div class="field-row">
+        <div class="field"><label>Campo / Zona Operativa</label><input id="qZone" placeholder="Ej: Zuata / San Tomé / Morichal" /></div>
+        <div class="field">
+          <label>Rubro Requerido</label>
+          <select id="qType">
+            <option value="Dotación EPP (Botas/Bragas/Cascos)">Dotación EPP (Botas/Bragas/Cascos)</option>
+            <option value="Repuestos / Ferretería Industrial">Repuestos / Ferretería Industrial</option>
+            <option value="Transporte Pesado / Grúas / 4x4">Transporte Pesado / Grúas / 4x4</option>
+            <option value="Catering / Comida para Cuadrillas">Catering / Comida para Cuadrillas</option>
+            <option value="Otro Suministro Petrolero">Otro Suministro Petrolero</option>
+          </select>
+        </div>
+      </div>
+      <div class="field"><label>Detalle del Pedido y Cantidades</label><textarea id="qDetail" rows="3" placeholder="Ej: 40 pares de botas caña alta puntera composite y 40 bragas ignífugas talla L-XL..."></textarea></div>
+      <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:10px;">
+        <button onclick="closeModals()">Cerrar</button>
+        <button class="quote-btn" onclick="sendQuoteWhatsApp()"><i class="fa-brands fa-whatsapp"></i> Enviar Requerimiento a Central</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 3: Planes VIP y Publicidad -->
+  <div class="modal-backdrop" id="proModal">
+    <div class="modal">
+      <h2><i class="fa-solid fa-crown"></i> Planes VIP & Publicidad B2B</h2>
+      <p style="font-size:12px; color:var(--muted); line-height:1.5; margin-bottom:10px;">
+        Conecta directamente con las operaciones de la Faja Petrolífera del Orinoco y toda Venezuela.
+      </p>
+      <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:12px;">
+        <div class="kpi" style="border-color: var(--vip);">
+          <label style="color:#d8b4fe; font-weight:700;">🔒 Pase Membresía VIP (Empresas & Procura)</label>
+          <p style="font-size:11.5px; margin-top:4px; color:var(--text);">Desbloquea todas las fichas técnicas, direcciones exactas de procura, trabajos en ejecución y fuerza laboral de las 22 operadoras internacionales, mixtas y contratistas nacionales.</p>
+          <div style="font-size:13px; font-weight:800; color:#d8b4fe; margin-top:4px;">$35 USD / Mes</div>
+        </div>
+        <div class="kpi" style="border-color: var(--accent-2);">
+          <label style="color:var(--accent-2); font-weight:700;">📍 Punto Comercial en el Mapa (Proveedores)</label>
+          <p style="font-size:11.5px; margin-top:4px; color:var(--text);">Publica tu venta de repuestos, fábrica de botas/EPP, parador vial o flota de transporte con contacto directo en la zona petrolera.</p>
+          <div style="font-size:13px; font-weight:800; color:var(--accent-2); margin-top:4px;">$25 USD / Mes</div>
+        </div>
+        <div class="kpi" style="border-color: var(--accent);">
+          <label style="color:var(--accent); font-weight:700;">🌟 Banner Destacado Superior</label>
+          <p style="font-size:11.5px; margin-top:4px; color:var(--text);">Máxima visibilidad en la cabecera principal de toda la plataforma para grandes proveedores industriales.</p>
+          <div style="font-size:13px; font-weight:800; color:var(--accent); margin-top:4px;">$90 USD / Mes</div>
+        </div>
+      </div>
+      <div style="display:flex; gap:8px; justify-content:flex-end;">
+        <button onclick="closeModals()">Cerrar</button>
+        <button class="quote-btn" onclick="window.open('https://wa.me/584121788766?text=Hola%20Jose%20Nery,%20me%20interesa%20activar%20un%20Plan%20VIP%20o%20anunciar%20mi%20negocio%20en%20VenePetrol%20Intel','_blank')">
+          <i class="fa-brands fa-whatsapp"></i> Contactar (+58 412-1788766)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 4: Panel Admin -->
+  <div class="modal-backdrop" id="adminModal">
+    <div class="modal">
+      <h2><i class="fa-solid fa-lock"></i> Panel Administrador - VenePetrol</h2>
+      <div class="field-row">
+        <div class="field"><label>Clave VIP Actual (Para Clientes)</label><input id="inVipPass" /></div>
+        <div class="field"><label>Banner Título (ES)</label><input id="inSpTitle" /></div>
+      </div>
+      <div class="field"><label>Banner Descripción (ES)</label><textarea id="inSpDesc" rows="2"></textarea></div>
+
+      <hr style="border-color:var(--border); margin:10px 0;" />
+      <div class="field">
+        <label>Elegir registro para editar o crear nuevo</label>
+        <select id="selNode" onchange="loadNodeData(this.value)"></select>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Nombre (ES)</label><input id="inNodeName" /></div>
+        <div class="field"><label>Nombre (EN)</label><input id="inNodeNameEn" /></div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Categoría</label>
+          <select id="inNodeCategory">
+            <option value="petroleo">Campo Petrolero</option>
+            <option value="oficinas">Oficina PDVSA</option>
+            <option value="internacional">Empresa Internacional / Mixta (VIP)</option>
+            <option value="nacional">Contratista Nacional (VIP)</option>
+            <option value="combustible">Estación de Servicio (Gasolina/Gasoil)</option>
+            <option value="seguridad">Comando GNB / Policía</option>
+            <option value="salud">Hospital / Clínica / CDI</option>
+            <option value="terminal">Terminal Terrestre</option>
+            <option value="comercio">Proveedor B2B / Comercio</option>
+          </select>
+        </div>
+        <div class="field"><label>Estado / Zona / Cuenca</label><input id="inNodeBasin" /></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Latitud (Y)</label><input type="number" step="0.01" id="inNodeLat" /></div>
+        <div class="field"><label>Longitud (X)</label><input type="number" step="0.01" id="inNodeLng" /></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Prod. BPD (si aplica)</label><input type="number" id="inNodeBpd" /></div>
+        <div class="field"><label>Trabajadores Est. (VIP)</label><input id="inNodeWorkers" placeholder="Ej: ~1.500 - 2.200" /></div>
+      </div>
+      <div class="field"><label>Cobertura Telefonía (Movilnet / Digitel / Movistar)</label><input id="inNodeSignal" placeholder="Ej: Movilnet 4G · Digitel 3G" /></div>
+      <div class="field"><label>Ficha Técnica / Dirección / Info (ES)</label><textarea id="inNodeEpp" rows="2"></textarea></div>
+      <div class="field"><label>Ficha Técnica / Dirección / Info (EN)</label><textarea id="inNodeEppEn" rows="2"></textarea></div>
+
+      <div style="display:flex; gap:8px; justify-content:space-between; margin-top:10px;">
+        <button onclick="deleteNode()" id="btnDelete" style="border-color:var(--danger); color:var(--danger); display:none;"><i class="fa-solid fa-trash"></i> Eliminar</button>
+        <div style="display:flex; gap:8px; margin-left:auto;">
+          <button onclick="closeModals()">Cerrar</button>
+          <button class="primary" onclick="saveAdmin()"><i class="fa-solid fa-floppy-disk"></i> Guardar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    const WHATSAPP_NUM = "584121788766";
+    let vipPassword = localStorage.getItem('vp_vip_pass') || "VIP2026";
+    let isVIP = localStorage.getItem('vp_is_vip') === 'true';
+    let currentLanguage = localStorage.getItem('vp_lang') || 'es';
+    let currentCategory = 'TODAS';
+
+    const i18n = {
+      es: {
+        btnFichas: "Fichas VIP", btnQuote: "Cotizar", kpiNodes: "Puntos Activos", kpiBpd: "Prod. Ref (BPD)",
+        kpiVipState: "Acceso VIP", kpiFaja: "Cobertura", advTag: "CENTRAL B2B · PROCURA & SUMINISTROS",
+        advQuote: "Solicitar Cotización", advVip: "Acceso VIP / Anunciar",
+        petroleo: "Campo Petrolero", oficinas: "Oficina PDVSA", internacional: "Internacional / Mixta",
+        nacional: "Contratista Nacional", seguridad: "Seguridad GNB/Pol", combustible: "Combustible",
+        salud: "Salud / CDI", terminal: "Terminal Terrestre", comercio: "Proveedor B2B"
+      },
+      en: {
+        btnFichas: "VIP Profiles", btnQuote: "Quote", kpiNodes: "Active Nodes", kpiBpd: "Ref. Prod (BPD)",
+        kpiVipState: "VIP Access", kpiFaja: "Coverage", advTag: "B2B HUB · PROCUREMENT & SUPPLY",
+        advQuote: "Request Quote", advVip: "VIP Access / Advertise",
+        petroleo: "Oil Field", oficinas: "PDVSA Office", internacional: "International / JV",
+        nacional: "National Contractor", seguridad: "Security / Guard", combustible: "Fuel Station",
+        salud: "Hospital / Clinic", terminal: "Bus Terminal", comercio: "B2B Supplier"
+      }
+    };
+
+    const defaultNodes = [
+      // ==================== 28 CAMPOS PETROLEROS (CON SEÑAL TELEFÓNICA) ====================
+      { id: 1, name: "Cerro Negro (Morichal)", name_en: "Cerro Negro (Morichal)", category: "petroleo", basin: "Monagas · Faja Orinoco", lat: 8.52, lng: -63.35, bpd: 115000, signal: "Movilnet 4G · Digitel 4G/3G · Movistar baja", epp: "EPP: Bragas ignífugas, botas composite. Reactivación taladros Bloque Carabobo.", epp_en: "PPE: FR coveralls, composite boots. Carabobo Block rig reactivation." },
+      { id: 2, name: "Zuata / San Diego de Cabrutica", name_en: "Zuata / San Diego de Cabrutica", category: "petroleo", basin: "Anzoátegui · Faja Orinoco", lat: 8.35, lng: -64.72, bpd: 130000, signal: "Movilnet 4G/Voz · Digitel 3G intermitente · Movistar solo Pariaguán", epp: "EPP: Botas caña alta petroleras, lentes UV. Alto tráfico de cuadrillas Bloque Junín.", epp_en: "PPE: High-top oil boots, UV glasses. High crew traffic Junin Block." },
+      { id: 3, name: "Carabobo (Temblador / Uracoa)", name_en: "Carabobo (Temblador / Uracoa)", category: "petroleo", basin: "Monagas / Delta · Faja Orinoco", lat: 8.95, lng: -62.65, bpd: 95000, signal: "Movilnet 4G · Digitel 3G en Temblador · Movistar intermitente", epp: "EPP: Cascos tipo cachucha, guantes carnaza, botas impermeables.", epp_en: "PPE: Hard hats, leather gloves, waterproof boots." },
+      { id: 4, name: "Ayacucho (Pariaguán / San Tomé)", name_en: "Ayacucho (Pariaguán / San Tomé)", category: "petroleo", basin: "Anzoátegui · Faja Orinoco", lat: 8.85, lng: -64.70, bpd: 85000, signal: "Digitel 4G LTE · Movilnet 4G · Movistar 4G en cascos urbanos", epp: "EPP: Jeans industriales 14oz, camisas manga larga, botas puntera acero.", epp_en: "PPE: 14oz industrial jeans, long sleeve shirts, steel-toe boots." },
+      { id: 5, name: "Boyacá (Machete / Chaguaramas / Valle la Pascua)", name_en: "Boyacá (Machete / Chaguaramas)", category: "petroleo", basin: "Guárico · Faja Orinoco", lat: 8.40, lng: -66.15, bpd: 35000, signal: "Movilnet (Voz/Datos en campamentos) · Digitel/Movistar en Chaguaramas", epp: "EPP: Botas dieléctricas, protección respiratoria. Frente occidental Faja en Guárico.", epp_en: "PPE: Dielectric boots, respiratory protection. Western Orinoco Belt in Guarico." },
+      { id: 6, name: "Complejo Criogénico José (Mejoradores)", name_en: "Jose Upgrader Complex", category: "petroleo", basin: "Anzoátegui Norte · Faja Orinoco", lat: 10.08, lng: -64.84, bpd: 210000, signal: "Digitel, Movistar y Movilnet 4G LTE completo", epp: "EPP: Equipos H2S, bragas Nomex certificadas, botas dieléctricas.", epp_en: "PPE: H2S monitors, certified Nomex coveralls, dielectric boots." },
+      { id: 7, name: "Petrocedeño (Zuata / Pariaguán Sur)", name_en: "Petrocedeño (Zuata)", category: "petroleo", basin: "Anzoátegui · Faja Orinoco", lat: 8.42, lng: -64.85, bpd: 105000, signal: "Movilnet 4G · Digitel 3G en estaciones principales", epp: "EPP: Arneses de altura, botas soldador, guantes anticorte.", epp_en: "PPE: Safety harnesses, welder boots, cut-resistant gloves." },
+      { id: 8, name: "Petropiar (Huyapari / San Tomé)", name_en: "Petropiar (Huyapari)", category: "petroleo", basin: "Anzoátegui · Faja Orinoco", lat: 8.65, lng: -64.25, bpd: 110000, signal: "Movilnet 4G · Digitel 4G/3G · Movistar 3G", epp: "EPP: Guantes anticorte, lentes herméticos, bragas ignífugas.", epp_en: "PPE: Cut-resistant gloves, sealed goggles, FR coveralls." },
+      { id: 9, name: "Sinovensa (Morichal / El Menito)", name_en: "Sinovensa (Morichal)", category: "petroleo", basin: "Monagas · Faja Orinoco", lat: 8.58, lng: -63.48, bpd: 90000, signal: "Movilnet 4G · Digitel 4G estable en base", epp: "EPP: Dotación estándar EPP taladro y macollas horizontales.", epp_en: "PPE: Standard rig & horizontal well pad PPE." },
+      { id: 10, name: "Petromonagas (Cerro Negro)", name_en: "Petromonagas (Cerro Negro)", category: "petroleo", basin: "Monagas · Faja Orinoco", lat: 8.48, lng: -63.28, bpd: 80000, signal: "Movilnet 4G · Digitel 3G", epp: "EPP: Botas petroleras, detectores multigas.", epp_en: "PPE: Oilfield boots, multigas detectors." },
+      { id: 11, name: "El Furrial (Maturín)", name_en: "El Furrial (Maturín)", category: "petroleo", basin: "Monagas · Cuenca Oriental", lat: 9.70, lng: -63.45, bpd: 120000, signal: "Digitel, Movistar y Movilnet 4G LTE", epp: "EPP: Bragas alta visibilidad, botas caña alta.", epp_en: "PPE: High-vis coveralls, high-top boots." },
+      { id: 12, name: "Santa Bárbara / Pirital", name_en: "Santa Bárbara / Pirital", category: "petroleo", basin: "Monagas · Cuenca Oriental", lat: 9.65, lng: -63.65, bpd: 65000, signal: "Digitel 4G · Movilnet 4G · Movistar 3G", epp: "EPP: Protección auditiva doble, cascos dieléctricos.", epp_en: "PPE: Double hearing protection, dielectric helmets." },
+      { id: 13, name: "Jusepín (Punta de Mata)", name_en: "Jusepín (Punta de Mata)", category: "petroleo", basin: "Monagas · Cuenca Oriental", lat: 9.68, lng: -63.52, bpd: 55000, signal: "Digitel, Movistar y Movilnet 4G", epp: "EPP: Guantes nitrilo pesado, jeans industriales.", epp_en: "PPE: Heavy nitrile gloves, industrial jeans." },
+      { id: 14, name: "Quiriquire (Monagas)", name_en: "Quiriquire (Monagas)", category: "petroleo", basin: "Monagas · Cuenca Oriental", lat: 9.95, lng: -63.22, bpd: 25000, signal: "Movilnet 4G · Digitel 3G", epp: "EPP: Botas impermeables, bragas algodón.", epp_en: "PPE: Waterproof boots, cotton coveralls." },
+      { id: 15, name: "Anaco / San Joaquín (Gas)", name_en: "Anaco / San Joaquín (Gas)", category: "petroleo", basin: "Anzoátegui · Cuenca Oriental", lat: 9.43, lng: -64.46, bpd: 45000, signal: "Digitel, Movistar y Movilnet 4G LTE completo", epp: "EPP: Ropa antiestática, calzado sin metal.", epp_en: "PPE: Anti-static clothing, metal-free footwear." },
+      { id: 16, name: "Oficina / El Tigre", name_en: "Oficina / El Tigre", category: "petroleo", basin: "Anzoátegui · Faja Orinoco", lat: 8.88, lng: -64.24, bpd: 40000, signal: "Digitel, Movistar y Movilnet 4G LTE completo", epp: "EPP: Camisas ignífugas, botas puntera acero.", epp_en: "PPE: FR shirts, steel-toe boots." },
+      { id: 17, name: "Pedernales / Tucupita (Delta)", name_en: "Pedernales / Tucupita (Delta)", category: "petroleo", basin: "Delta Amacuro · Faja Oriental", lat: 9.96, lng: -62.25, bpd: 18000, signal: "Movilnet (Voz/3G) · Digitel en Tucupita", epp: "EPP: Chalecos salvavidas SOLAS, botas goma.", epp_en: "PPE: SOLAS life jackets, rubber boots." },
+      { id: 18, name: "Dación / Chimire / Cantaura", name_en: "Dación / Chimire", category: "petroleo", basin: "Anzoátegui · Cuenca Oriental", lat: 9.15, lng: -64.35, bpd: 32000, signal: "Digitel 4G · Movilnet 4G · Movistar 3G", epp: "EPP: Dotación completa mantenimiento de pozos.", epp_en: "PPE: Full well-servicing PPE." },
+      { id: 19, name: "Boscán (Zulia)", name_en: "Boscán (Zulia)", category: "petroleo", basin: "Zulia · Lago de Maracaibo", lat: 10.45, lng: -71.95, bpd: 85000, signal: "Digitel, Movistar y Movilnet 4G", epp: "EPP: Botas resistentes a crudo pesado, lentes UV.", epp_en: "PPE: Heavy-crude boots, UV glasses." },
+      { id: 20, name: "Tía Juana (Costa Oriental)", name_en: "Tía Juana (East Coast)", category: "petroleo", basin: "Zulia · Lago de Maracaibo", lat: 10.25, lng: -71.35, bpd: 75000, signal: "Digitel, Movistar y Movilnet 4G LTE", epp: "EPP: Chalecos flotación lacustre, cascos.", epp_en: "PPE: Marine flotation vests, helmets." },
+      { id: 21, name: "Bachaquero", name_en: "Bachaquero", category: "petroleo", basin: "Zulia · Lago de Maracaibo", lat: 9.95, lng: -71.15, bpd: 70000, signal: "Digitel 4G · Movilnet 4G · Movistar 3G", epp: "EPP: Bragas frescas transpirables, botas caña alta.", epp_en: "PPE: Breathable coveralls, high-top boots." },
+      { id: 22, name: "Lagunillas / Ciudad Ojeda", name_en: "Lagunillas / Ciudad Ojeda", category: "petroleo", basin: "Zulia · Lago de Maracaibo", lat: 10.13, lng: -71.25, bpd: 68000, signal: "Digitel, Movistar y Movilnet 4G LTE", epp: "EPP: Guantes impacto taladro, protección auditiva.", epp_en: "PPE: Rig impact gloves, hearing protection." },
+      { id: 23, name: "Cabimas / La Rosa", name_en: "Cabimas / La Rosa", category: "petroleo", basin: "Zulia · Lago de Maracaibo", lat: 10.38, lng: -71.44, bpd: 45000, signal: "Digitel, Movistar y Movilnet 4G LTE", epp: "EPP: Calzado antideslizante cubierta, lentes.", epp_en: "PPE: Non-slip deck footwear, safety glasses." },
+      { id: 24, name: "Urdaneta Lago", name_en: "Urdaneta Lake", category: "petroleo", basin: "Zulia · Lago de Maracaibo", lat: 10.50, lng: -71.60, bpd: 38000, signal: "Digitel y Movilnet (cobertura costera)", epp: "EPP: Equipos offshore y gabarras.", epp_en: "PPE: Offshore & barge PPE." },
+      { id: 25, name: "Mene Grande (Zumaque I)", name_en: "Mene Grande (Zumaque I)", category: "petroleo", basin: "Zulia · Lago de Maracaibo", lat: 9.81, lng: -70.92, bpd: 22000, signal: "Movilnet 4G · Digitel 3G", epp: "EPP: Dotación básica cuadrilla tierra.", epp_en: "PPE: Standard land crew kit." },
+      { id: 26, name: "Silvestre / San Silvestre", name_en: "Silvestre / San Silvestre", category: "petroleo", basin: "Barinas · Barinas-Apure", lat: 8.30, lng: -70.15, bpd: 24000, signal: "Movilnet 4G · Digitel 3G", epp: "EPP: Botas pantaneras puntera acero, impermeables.", epp_en: "PPE: Steel-toe swamp boots, rainwear." },
+      { id: 27, name: "Guafita (Apure)", name_en: "Guafita (Apure)", category: "petroleo", basin: "Apure · Barinas-Apure", lat: 7.05, lng: -71.20, bpd: 19000, signal: "Movilnet (Voz/Datos en estación)", epp: "EPP: Bragas manga larga, botas altas.", epp_en: "PPE: Long-sleeve coveralls, high boots." },
+      { id: 28, name: "La Victoria (Apure)", name_en: "La Victoria (Apure)", category: "petroleo", basin: "Apure · Barinas-Apure", lat: 7.02, lng: -71.45, bpd: 15000, signal: "Movilnet (cobertura fronteriza básica)", epp: "EPP: Dotación completa producción y oleoducto.", epp_en: "PPE: Full production & pipeline PPE." },
+
+      // ==================== 10 OFICINAS ADMINISTRATIVAS PDVSA ====================
+      { id: 101, name: "Sede Administrativa PDVSA El Tigre / CISDEN", name_en: "PDVSA El Tigre / CISDEN Admin HQ", category: "oficinas", basin: "Anzoátegui · Faja Orinoco", lat: 8.89, lng: -64.25, bpd: 0, epp: "Gerencia de Procura, Contratación, Finanzas y Registro de Proveedores Faja.", epp_en: "Procurement, Contracting, Finance & Orinoco Belt Vendor Registration." },
+      { id: 102, name: "Campo San Tomé - Edificio Sede Distrito", name_en: "San Tome Field - District Admin HQ", category: "oficinas", basin: "Anzoátegui · Faja Orinoco", lat: 8.94, lng: -64.14, bpd: 0, epp: "Dirección Ejecutiva Faja Petrolífera del Orinoco, Logística y Recursos Humanos.", epp_en: "Orinoco Oil Belt Executive Directorate, Logistics & HR." },
+      { id: 103, name: "Complejo Administrativo El Menito / Morichal", name_en: "El Menito / Morichal Admin Complex", category: "oficinas", basin: "Monagas · Faja Orinoco", lat: 8.55, lng: -63.38, bpd: 0, epp: "Gerencia División Carabobo, Empresas Mixtas y Compras Operacionales.", epp_en: "Carabobo Division Management, Joint Ventures & Operational Purchasing." },
+      { id: 104, name: "Edificio Sede PDVSA La Campiña (Principal)", name_en: "PDVSA La Campiña Corporate HQ", category: "oficinas", basin: "Caracas · Distrito Capital", lat: 10.49, lng: -66.87, bpd: 0, epp: "Presidencia, Junta Directiva, Bariven Nacional y Contrataciones Corporativas.", epp_en: "Presidency, Board of Directors, National Bariven & Corporate Contracting." },
+      { id: 105, name: "Edificio Sede Guaraguao / Refinación Oriente", name_en: "Guaraguao HQ / Eastern Refining", category: "oficinas", basin: "Puerto La Cruz · Anzoátegui", lat: 10.22, lng: -64.63, bpd: 0, epp: "Gerencia de Refinación Oriente, Comercio y Suministro, Almacenes Bariven.", epp_en: "Eastern Refining Management, Trade & Supply, Bariven Warehouses." },
+      { id: 106, name: "Edificio Sede PDVSA Maturín (Av. Alirio Ugarte)", name_en: "PDVSA Maturín Regional HQ", category: "oficinas", basin: "Maturín · Monagas", lat: 9.74, lng: -63.18, bpd: 0, epp: "Dirección Ejecutiva Producción Oriente, Procura y Atención al Contratista.", epp_en: "Eastern Production Executive Directorate, Procurement & Contractor Desk." },
+      { id: 107, name: "Edificio Miranda / 5 de Julio (Sede Occidente)", name_en: "Miranda / 5 de Julio Western HQ", category: "oficinas", basin: "Maracaibo · Zulia", lat: 10.66, lng: -71.61, bpd: 0, epp: "Dirección Ejecutiva Producción Occidente, Administración y Bariven Zulia.", epp_en: "Western Production Directorate, Admin & Bariven Zulia." },
+      { id: 108, name: "Edificio Sede La Salina (Costa Oriental)", name_en: "La Salina Admin HQ (East Coast)", category: "oficinas", basin: "Cabimas · Zulia", lat: 10.36, lng: -71.45, bpd: 0, epp: "Gerencia Operaciones Acuáticas, Mantenimiento Naval y Contratación COL.", epp_en: "Marine Operations, Naval Maintenance & East Coast Contracting." },
+      { id: 109, name: "Sede Administrativa CRP (Cardón / Amuay)", name_en: "Paraguaná Refining Center Admin HQ", category: "oficinas", basin: "Punto Fijo · Falcón", lat: 11.63, lng: -70.21, bpd: 0, epp: "Centro de Refinación Paraguaná: Gerencia de Compras, Paradas de Planta y EPP.", epp_en: "Paraguaná Refining Center: Purchasing, Turnarounds & PPE Management." },
+      { id: 110, name: "Edificio Sede División Boyacá / Guárico-Barinas", name_en: "Boyacá Division HQ", category: "oficinas", basin: "Barinas / Chaguaramas", lat: 8.62, lng: -70.21, bpd: 0, epp: "Gerencia General División Boyacá, Administración y Logística Llanos/Faja Oeste.", epp_en: "Boyacá Division General Management, Admin & Western Belt Logistics." },
+
+      // ==================== 12 EMPRESAS INTERNACIONALES Y MIXTAS (BLOQUEO VIP 🔒) ====================
+      { id: 201, name: "Chevron (Petropiar / Petroboscán / Petroindependencia)", name_en: "Chevron Venezuela Operations", category: "internacional", basin: "Zulia · Anzoátegui · Faja", lat: 10.67, lng: -71.62, bpd: 245000, workers: "~4.500 - 6.000 trabajadores", vip: true, epp: "Sedes: Av. 5 de Julio Maracaibo, Campo San Tomé y Complejo José. Trabajo: Extracción y mejoramiento de crudo pesado/extrapesado (~245.000 BPD). Demanda alta de botas caña alta, bragas ignífugas, flotas 4x4 y catering.", epp_en: "HQ: Maracaibo 5 de Julio, San Tome & Jose Complex. Work: Heavy/extra-heavy crude extraction & upgrading (~245k BPD). High demand for safety boots, FR coveralls, 4x4 fleets & catering." },
+      { id: 202, name: "Repsol (Petroquiriquire / Cardón IV / Barúa-Motatán)", name_en: "Repsol Venezuela", category: "internacional", basin: "Caracas · Monagas · Zulia · Falcón", lat: 10.50, lng: -66.85, bpd: 55000, workers: "~2.200 - 3.000 trabajadores", vip: true, epp: "Sedes: Urb. La Castellana Caracas, Campo Quiriquire (Monagas), Mene Grande (Zulia) y Punto Fijo. Trabajo: Producción de crudo y operación 50% megacampo gasífero Perla. Demanda ropa antiestática, botas dieléctricas y válvulas.", epp_en: "HQ: La Castellana Caracas, Quiriquire, Mene Grande & Punto Fijo. Work: Crude production & 50% Perla offshore gas field. Demand: anti-static wear, dielectric boots." },
+      { id: 203, name: "Eni (PetroSucre / Bloque Junín 5 / Cardón IV)", name_en: "Eni Venezuela", category: "internacional", basin: "Anzoátegui (Faja) · Sucre · Falcón", lat: 8.86, lng: -64.71, bpd: 20000, workers: "~1.800 - 2.500 trabajadores", vip: true, epp: "Sedes: Pariaguán (Bloque Junín 5), Güiria (Sucre) y Av. Fco. de Miranda Caracas. Trabajo: Operador único Bloque Junín 5 en la Faja del Orinoco y producción de gas/crudo costa afuera. Demanda transporte cama baja, botas composite y logística.", epp_en: "HQ: Pariaguan (Junin 5), Guiria & Caracas. Work: Sole operator Junin 5 Block Orinoco Belt & offshore gas/oil. Demand: flatbed transport, composite boots." },
+      { id: 204, name: "Maurel & Prom (Petroregional del Lago)", name_en: "Maurel & Prom Venezuela", category: "internacional", basin: "Zulia · Lago de Maracaibo", lat: 10.48, lng: -71.63, bpd: 22000, workers: "~900 - 1.300 trabajadores", vip: true, epp: "Sedes: Sector Bella Vista Maracaibo y Campo Urdaneta Oeste (La Cañada). Trabajo: Rehabilitación de pozos lacustres y extracción en el Lago. Demanda chalecos SOLAS, calzado antideslizante y viandas.", epp_en: "HQ: Bella Vista Maracaibo & Urdaneta Oeste. Work: Lake well workover & extraction. Demand: SOLAS vests, non-slip footwear." },
+      { id: 205, name: "Sinovensa (CNPC China)", name_en: "Sinovensa (CNPC)", category: "internacional", basin: "Monagas · Faja Orinoco", lat: 8.56, lng: -63.46, bpd: 100000, workers: "~2.500 - 3.500 trabajadores", vip: true, epp: "Sedes: Campo Morichal / El Menito (Monagas) y Complejo José. Trabajo: Perforación de macollas horizontales y mezcla (blending) de crudo Merey 16. Demanda masiva de bragas, botas, repuestos pesados y comedores.", epp_en: "HQ: Morichal / El Menito & Jose Complex. Work: Horizontal pad drilling & Merey 16 blending. Demand: coveralls, boots, heavy parts." },
+      { id: 206, name: "Petromonagas (Roszarubezhneft Rusia)", name_en: "Petromonagas", category: "internacional", basin: "Monagas · Faja Orinoco", lat: 8.50, lng: -63.30, bpd: 85000, workers: "~1.800 - 2.400 trabajadores", vip: true, epp: "Sedes: Cerro Negro / Morichal (Monagas) y Mejorador José. Trabajo: Extracción de crudo extrapesado y mejoramiento industrial. Demanda detectores multigas, botas soldador y transporte de personal.", epp_en: "HQ: Cerro Negro / Morichal & Jose Upgrader. Work: Extra-heavy crude & upgrading. Demand: multigas detectors, welder boots." },
+      { id: 207, name: "PetroSanCristóbal / Indovenezolana (ONGC India)", name_en: "PetroSanCristóbal / ONGC", category: "internacional", basin: "Anzoátegui · Faja Orinoco", lat: 8.38, lng: -64.75, bpd: 22000, workers: "~1.100 - 1.600 trabajadores", vip: true, epp: "Sedes: Campo Zuata / San Diego de Cabrutica y Pariaguán. Trabajo: Reactivación de pozos cerrados y producción en bloques Junín Norte y Carabobo-1. Demanda botas petroleras, bombas y catering ruta Zuata.", epp_en: "HQ: Zuata / San Diego de Cabrutica & Pariaguan. Work: Closed well reactivation in Junin North & Carabobo-1. Demand: oil boots, catering." },
+      { id: 208, name: "Shell & BP (Proyectos Gasíferos Dragón / Cocuina)", name_en: "Shell & BP Offshore Gas", category: "internacional", basin: "Sucre · Península de Paria", lat: 10.57, lng: -62.30, bpd: 0, workers: "~600 - 1.000 trabajadores", vip: true, epp: "Sedes: Base Logística Portuaria Güiria (Sucre) y Caracas. Trabajo: Desarrollo de yacimientos gasíferos transfronterizos Dragón y Cocuina-Manakin. Demanda EPP norma ANSI/ISO y logística portuaria.", epp_en: "HQ: Guiria Port Base (Sucre) & Caracas. Work: Dragon & Cocuina cross-border gas development. Demand: ANSI/ISO PPE, port logistics." },
+      { id: 209, name: "Halliburton de Venezuela", name_en: "Halliburton Venezuela", category: "internacional", basin: "Monagas · Anzoátegui · Zulia", lat: 9.72, lng: -63.20, bpd: 0, workers: "~800 - 1.200 trabajadores", vip: true, epp: "Sedes: Zona Industrial Maturín, Carretera Negra El Tigre/Anaco, Ciudad Ojeda y El Rosal Caracas. Trabajo: Cementación de pozos, fracturamiento, fluidos y mechas. Demanda bragas ignífugas, botas composite y mangueras hidráulicas.", epp_en: "HQ: Maturin, El Tigre/Anaco, Ciudad Ojeda & Caracas. Work: Well cementing, fracturing, drilling fluids. Demand: FR coveralls, hydraulic hoses." },
+      { id: 210, name: "SLB (antes Schlumberger)", name_en: "SLB (Schlumberger)", category: "internacional", basin: "Anzoátegui · Monagas · Zulia", lat: 9.44, lng: -64.45, bpd: 0, workers: "~750 - 1.100 trabajadores", vip: true, epp: "Sedes: Carretera Nacional Anaco, Base Maturín, Ciudad Ojeda y La Castellana Caracas. Trabajo: Perfilaje eléctrico (wireline), perforación direccional y pruebas de pozos. Demanda ropa antiestática, calzado dieléctrico y alquiler 4x4.", epp_en: "HQ: Anaco, Maturin, Ciudad Ojeda & Caracas. Work: Wireline logging, directional drilling. Demand: anti-static wear, 4x4 rentals." },
+      { id: 211, name: "Baker Hughes", name_en: "Baker Hughes", category: "internacional", basin: "Zulia · Anzoátegui · Monagas", lat: 10.20, lng: -71.31, bpd: 0, workers: "~500 - 800 trabajadores", vip: true, epp: "Sedes: Zona Industrial Ciudad Ojeda/Maracaibo y Base Oriente Anaco/El Tigre. Trabajo: Bombas electrosumergibles (BES), levantamiento artificial y válvulas. Demanda guantes anticorte, grúas y ferretería industrial.", epp_en: "HQ: Ciudad Ojeda/Maracaibo & Anaco/El Tigre. Work: ESP pumps, artificial lift & valves. Demand: cut-resistant gloves, cranes." },
+      { id: 212, name: "Weatherford International", name_en: "Weatherford International", category: "internacional", basin: "Anzoátegui · Monagas · Zulia", lat: 9.42, lng: -64.47, bpd: 0, workers: "~450 - 750 trabajadores", vip: true, epp: "Sedes: Zona Industrial Anaco, Maturín y Costa Oriental del Lago. Trabajo: Tubería continua (coiled tubing), pesca, cabezales y mantenimiento de taladros. Demanda botas caña alta, guantes impacto y comida en campo.", epp_en: "HQ: Anaco, Maturin & East Coast Lake. Work: Coiled tubing, fishing, wellheads & rig service. Demand: oil boots, field catering." },
+
+      // ==================== 10 CONTRATISTAS NACIONALES DEL RAMO PETROLERO (BLOQUEO VIP 🔒) ====================
+      { id: 301, name: "INELECTRA (Ingeniería, Procura y Construcción)", name_en: "INELECTRA EPC", category: "nacional", basin: "Anzoátegui · Monagas · Zulia · Caracas", lat: 10.20, lng: -64.64, bpd: 0, workers: "~1.200 - 1.800 trabajadores", vip: true, epp: "Sedes: Puerto La Cruz, El Tigre/San Tomé, Maturín, Maracaibo y Santa Paula Caracas. Trabajo: IPC de plantas de gas, mejoradores y facilidades de producción. Demanda subcontratistas civiles/eléctricos, EPP y transporte.", epp_en: "HQ: Puerto La Cruz, El Tigre, Maturin, Maracaibo & Caracas. Work: Gas & upgrader EPC. Demand: civil/electrical subcontractors, PPE." },
+      { id: 302, name: "VEPICA (Venezolana de Proyectos Integrados)", name_en: "VEPICA Engineering", category: "nacional", basin: "Anzoátegui · Monagas · Zulia · Caracas", lat: 9.45, lng: -64.48, bpd: 0, workers: "~900 - 1.400 trabajadores", vip: true, epp: "Sedes: Anaco, Puerto La Cruz, Maturín, Maracaibo y Los Dos Caminos Caracas. Trabajo: Ingeniería de detalle, inspección de obras y gerencia de proyectos en la Faja. Demanda flotas de camionetas, dotación técnica y logística.", epp_en: "HQ: Anaco, Puerto La Cruz, Maturin, Maracaibo & Caracas. Work: Detailed engineering & construction inspection. Demand: pickup fleets, technical PPE." },
+      { id: 303, name: "TECNOCONSULT", name_en: "TECNOCONSULT", category: "nacional", basin: "Anzoátegui · Zulia · Caracas", lat: 8.90, lng: -64.23, bpd: 0, workers: "~700 - 1.100 trabajadores", vip: true, epp: "Sedes: El Tigre / Anaco (Anzoátegui), Maracaibo y Chuao Caracas. Trabajo: Construcción de oleoductos, estaciones de flujo e infraestructura petrolera. Demanda maquinaria amarilla, soldadores, botas y bragas.", epp_en: "HQ: El Tigre / Anaco, Maracaibo & Caracas. Work: Pipelines & flow stations. Demand: heavy machinery, welders, boots & coveralls." },
+      { id: 304, name: "Otepi / Otepi Consultores", name_en: "Otepi Energy & Engineering", category: "nacional", basin: "Anzoátegui · Falcón · Caracas", lat: 10.21, lng: -64.62, bpd: 0, workers: "~600 - 950 trabajadores", vip: true, epp: "Sedes: Puerto La Cruz, Punto Fijo (CRP) y Las Mercedes Caracas. Trabajo: Proyectos de refinación, gas e infraestructura industrial. Demanda equipos de seguridad en paradas de planta y suministros industriales.", epp_en: "HQ: Puerto La Cruz, Punto Fijo & Caracas. Work: Refining & gas projects. Demand: turnaround safety gear & industrial supplies." },
+      { id: 305, name: "Grupo Conkor (Servicios Petroleros)", name_en: "Conkor Oilfield Services", category: "nacional", basin: "Anzoátegui · Monagas · Faja", lat: 8.92, lng: -64.22, bpd: 0, workers: "~500 - 850 trabajadores", vip: true, epp: "Sedes: Carretera Negra El Tigre / Anaco y Maturín. Trabajo: Taladros de rehabilitación (workover), mantenimiento de pozos y bombeo en la Faja. Demanda repuestos de taladro, guantes impacto y catering.", epp_en: "HQ: El Tigre / Anaco & Maturin. Work: Workover rigs & well servicing. Demand: rig parts, impact gloves & catering." },
+      { id: 306, name: "Suelopetrol", name_en: "Suelopetrol", category: "nacional", basin: "Anzoátegui · Monagas · Guárico", lat: 8.84, lng: -64.68, bpd: 0, workers: "~450 - 750 trabajadores", vip: true, epp: "Sedes: Pariaguán / El Tigre, Maturín y La Castellana Caracas. Trabajo: Adquisición sísmica 2D/3D, geofísica y producción en bloques de la Faja. Demanda botas pantaneras/campo, campamentos móviles y víveres.", epp_en: "HQ: Pariaguan / El Tigre, Maturin & Caracas. Work: 2D/3D seismic & production. Demand: field boots, mobile camps & catering." },
+      { id: 307, name: "Ehcopek (Servicios de Perforación)", name_en: "Ehcopek Drilling", category: "nacional", basin: "Anzoátegui · Monagas · Faja", lat: 8.95, lng: -64.15, bpd: 0, workers: "~600 - 900 trabajadores", vip: true, epp: "Sedes: San Tomé / El Tigre y Morichal. Trabajo: Operación de taladros de perforación y rehabilitación en bloques Ayacucho y Carabobo. Demanda constante de EPP, mangueras y gasoil.", epp_en: "HQ: San Tome / El Tigre & Morichal. Work: Drilling & workover rigs in Ayacucho & Carabobo. Demand: PPE, hoses & diesel." },
+      { id: 308, name: "Petrex / Servicios de Perforación Oriente", name_en: "Petrex Oriente", category: "nacional", basin: "Anzoátegui · Monagas", lat: 9.41, lng: -64.46, bpd: 0, workers: "~550 - 800 trabajadores", vip: true, epp: "Sedes: Zona Industrial Anaco / El Tigre y Zona Industrial Maturín. Trabajo: Perforación direccional, mantenimiento de taladros y servicios de subsuelo. Demanda repuestos mecánicos y dotación obreros.", epp_en: "HQ: Anaco / El Tigre & Maturin Industrial Zone. Work: Directional drilling & rig maintenance. Demand: mechanical parts & PPE." },
+      { id: 309, name: "Z&P Construction (Obras Civiles y Oleoductos)", name_en: "Z&P Construction", category: "nacional", basin: "Zulia · Anzoátegui · Monagas", lat: 10.19, lng: -71.30, bpd: 0, workers: "~800 - 1.300 trabajadores", vip: true, epp: "Sedes: Ciudad Ojeda / Maracaibo y bases operativas en El Tigre / Morichal. Trabajo: Construcción de macollas, movimiento de tierras y tendido de tuberías. Demanda ferretería pesada, cauchos y transporte.", epp_en: "HQ: Ciudad Ojeda / Maracaibo & El Tigre / Morichal. Work: Well pad construction, earthworks & pipelines. Demand: heavy hardware, tires." },
+      { id: 310, name: "Tiven (Transportes Industriales de Venezuela)", name_en: "Tiven Heavy Logistics", category: "nacional", basin: "Anzoátegui · Monagas · Zulia", lat: 8.87, lng: -64.26, bpd: 0, workers: "~400 - 700 trabajadores", vip: true, epp: "Sedes: Zona Industrial El Tigre / Anaco, Maturín y Cabimas. Trabajo: Movilización de taladros, grúas de alto tonelaje y transporte cama baja. Demanda gasoil, cauchos de carga, baterías y repuestos.", epp_en: "HQ: El Tigre / Anaco, Maturin & Cabimas. Work: Rig moving, heavy cranes & flatbed haul. Demand: diesel, heavy tires & parts." },
+
+      // ==================== ESTACIONES DE SERVICIO (GASOLINA Y GASOIL) ====================
+      { id: 401, name: "E/S Pariaguán (Vía Faja / Zuata)", name_en: "Pariaguán Fuel Station", category: "combustible", basin: "Anzoátegui · Faja Orinoco", lat: 8.84, lng: -64.71, bpd: 0, epp: "Despacho: Gasoil (Diésel) para transporte pesado/cuadrillas y Gasolina. Punto clave antes de entrar a Zuata y San Diego de Cabrutica.", epp_en: "Supply: Diesel for heavy haul/crews & Gasoline. Key stop before Zuata & Cabrutica." },
+      { id: 402, name: "E/S San Diego de Cabrutica", name_en: "San Diego de Cabrutica Fuel Station", category: "combustible", basin: "Anzoátegui Sur · Faja Orinoco", lat: 8.36, lng: -64.71, bpd: 0, epp: "Despacho: Gasoil y Gasolina operativa para flotas de Bloque Junín y contratistas de campo.", epp_en: "Supply: Diesel & Gasoline for Junin Block fleets and field contractors." },
+      { id: 403, name: "E/S El Tigre (Av. Intercomunal / Vía San Tomé)", name_en: "El Tigre Intercomunal Fuel Station", category: "combustible", basin: "Anzoátegui · Faja Orinoco", lat: 8.90, lng: -64.22, bpd: 0, epp: "Despacho: Gasoil alto volumen (gandolas/cama baja) y Gasolina 24h. Lubricantes y cauchera pesada.", epp_en: "Supply: High-volume Diesel (flatbeds) & 24h Gasoline. Lubricants & heavy tire shop." },
+      { id: 404, name: "E/S San Tomé / Campo Oficina", name_en: "San Tomé Field Fuel Station", category: "combustible", basin: "Anzoátegui · Faja Orinoco", lat: 8.95, lng: -64.13, bpd: 0, epp: "Despacho: Surtidor estratégico para flotas operativas, cisternas y unidades de servicio en Distrito San Tomé.", epp_en: "Supply: Strategic fuel point for operational fleets and tankers in San Tome." },
+      { id: 405, name: "E/S Chaguaramas / Valle de la Pascua", name_en: "Chaguaramas / Valle de la Pascua Fuel", category: "combustible", basin: "Guárico · Bloque Boyacá", lat: 9.21, lng: -66.01, bpd: 0, epp: "Despacho: Gasoil y Gasolina en troncal hacia Bloque Boyacá (Machete) y Oriente.", epp_en: "Supply: Diesel & Gasoline on main highway to Boyaca Block & East." },
+      { id: 406, name: "E/S Morichal / Temblador", name_en: "Morichal / Temblador Fuel Station", category: "combustible", basin: "Monagas Sur · Bloque Carabobo", lat: 8.99, lng: -62.64, bpd: 0, epp: "Despacho: Gasoil y Gasolina para unidades de Cerro Negro, Sinovensa y ruta hacia Tucupita (Delta Amacuro).", epp_en: "Supply: Diesel & Gasoline for Cerro Negro, Sinovensa & Delta Amacuro route." },
+      { id: 407, name: "E/S Ciudad Bolívar (Puente Angostura / Sur)", name_en: "Ciudad Bolívar Fuel Hub", category: "combustible", basin: "Bolívar · Eje Sur Faja", lat: 8.12, lng: -63.54, bpd: 0, epp: "Despacho: Gasoil industrial y Gasolina para logística fluvial/terrestre eje Orinoco Sur.", epp_en: "Supply: Industrial Diesel & Gasoline for Southern Orinoco logistics." },
+      { id: 408, name: "E/S Anaco (Carretera Negra)", name_en: "Anaco Carretera Negra Fuel", category: "combustible", basin: "Anzoátegui · Cuenca Oriental", lat: 9.42, lng: -64.45, bpd: 0, epp: "Despacho: Gasoil y Gasolina junto a bases de Halliburton, SLB y taladros.", epp_en: "Supply: Diesel & Gasoline next to Halliburton, SLB & rig bases." },
+      { id: 409, name: "E/S Maturín (Zona Industrial / Vía El Furrial)", name_en: "Maturín Industrial Fuel Station", category: "combustible", basin: "Monagas · Cuenca Oriental", lat: 9.71, lng: -63.25, bpd: 0, epp: "Despacho: Gasoil carga pesada y Gasolina para flotas de El Furrial, Jusepín y Punta de Mata.", epp_en: "Supply: Heavy-duty Diesel & Gasoline for El Furrial & Jusepin fleets." },
+      { id: 410, name: "E/S Cabimas / Ciudad Ojeda (Intercomunal)", name_en: "Cabimas / Ciudad Ojeda Fuel", category: "combustible", basin: "Zulia · Costa Oriental del Lago", lat: 10.22, lng: -71.33, bpd: 0, epp: "Despacho: Gasoil y Gasolina en eje petrolero de la Costa Oriental del Lago.", epp_en: "Supply: Diesel & Gasoline on East Coast Lake Maracaibo oil corridor." },
+
+      // ==================== COMANDOS GNB, POLICÍA ESTADAL Y REGIONAL ====================
+      { id: 501, name: "Destacamento GNB D-523 El Tigre", name_en: "GNB Detachment El Tigre", category: "seguridad", basin: "Anzoátegui · Faja Orinoco", lat: 8.88, lng: -64.26, bpd: 0, epp: "Comando Guardia Nacional Bolivariana · Resguardo vial y control de guías de carga en El Tigre.", epp_en: "National Guard Command · Road security & cargo permit checkpoint in El Tigre." },
+      { id: 502, name: "Comando GNB San Tomé / Faja", name_en: "GNB Command San Tomé", category: "seguridad", basin: "Anzoátegui · Faja Orinoco", lat: 8.93, lng: -64.15, bpd: 0, epp: "Seguridad de instalaciones petroleras, taladros y custodia de convoyes en Distrito San Tomé.", epp_en: "Oil facility security, rigs & convoy escort in San Tome District." },
+      { id: 503, name: "Puesto GNB / Policía Pariaguán – Zuata", name_en: "GNB / Police Post Pariaguán - Zuata", category: "seguridad", basin: "Anzoátegui · Bloque Junín", lat: 8.60, lng: -64.72, bpd: 0, epp: "Punto de control vial y resguardo en corredor Pariaguán – Zuata – San Diego de Cabrutica.", epp_en: "Road checkpoint & security on Pariaguan - Zuata - Cabrutica corridor." },
+      { id: 504, name: "Comando GNB / Poliguárico Chaguaramas – Valle la Pascua", name_en: "GNB / Police Chaguaramas", category: "seguridad", basin: "Guárico · Bloque Boyacá", lat: 9.33, lng: -66.25, bpd: 0, epp: "Comando GNB y Policía Estadal de Guárico · Cobertura Bloque Boyacá y eje llanero.", epp_en: "GNB & Guarico State Police · Boyaca Block security coverage." },
+      { id: 505, name: "Destacamento GNB Morichal / Temblador", name_en: "GNB Morichal / Temblador", category: "seguridad", basin: "Monagas Sur · Bloque Carabobo", lat: 8.54, lng: -63.40, bpd: 0, epp: "Resguardo instalaciones Faja Carabobo, Cerro Negro, Sinovensa y vía Delta Amacuro.", epp_en: "Security for Carabobo Block, Cerro Negro, Sinovensa & Delta road." },
+      { id: 506, name: "Comando Polianzoátegui / Policía Municipal El Tigre", name_en: "Anzoátegui State & Municipal Police El Tigre", category: "seguridad", basin: "Anzoátegui · Faja Orinoco", lat: 8.89, lng: -64.24, bpd: 0, epp: "Coordinación policial regional y patrullaje urbano/industrial en El Tigre.", epp_en: "Regional police coordination & urban/industrial patrol in El Tigre." },
+      { id: 507, name: "Comando GNB / Polimonagas Maturín", name_en: "GNB / Monagas State Police Maturín", category: "seguridad", basin: "Monagas · Cuenca Oriental", lat: 9.73, lng: -63.19, bpd: 0, epp: "Comando regional de seguridad Oriente y resguardo corredor El Furrial – Punta de Mata.", epp_en: "Eastern regional security command & El Furrial corridor patrol." },
+      { id: 508, name: "Destacamento GNB Cabimas / Polizulia COL", name_en: "GNB Cabimas / Zulia Police", category: "seguridad", basin: "Zulia · Costa Oriental", lat: 10.39, lng: -71.43, bpd: 0, epp: "Resguardo lacustre, muelles petroleros y vigilancia vial Costa Oriental del Lago.", epp_en: "Marine security, oil piers & East Coast Lake highway patrol." },
+
+      // ==================== HOSPITALES, CLÍNICAS Y CDI ====================
+      { id: 601, name: "Hospital Dr. Felipe Guevara Rojas (El Tigre)", name_en: "Dr. Felipe Guevara Rojas Hospital", category: "salud", basin: "Anzoátegui · Faja Orinoco", lat: 8.89, lng: -64.23, bpd: 0, epp: "Hospital General · Emergencia 24h, traumatología, cirugía y laboratorio. Referencia principal Faja.", epp_en: "General Hospital · 24h ER, trauma, surgery & lab. Main Orinoco Belt referral." },
+      { id: 602, name: "Hospital Industrial San Tomé (PDVSA Salud)", name_en: "San Tomé Industrial Hospital", category: "salud", basin: "Anzoátegui · Faja Orinoco", lat: 8.94, lng: -64.13, bpd: 0, epp: "Atención médica ocupacional, emergencias petroleras, ambulancias y rayos X.", epp_en: "Occupational medicine, oilfield emergencies, ambulances & X-ray." },
+      { id: 603, name: "Hospital Tipo I y CDI Pariaguán", name_en: "Pariaguán Hospital & CDI", category: "salud", basin: "Anzoátegui · Bloque Junín", lat: 8.85, lng: -64.71, bpd: 0, epp: "Emergencia 24h y estabilización primaria para cuadrillas de Zuata y Junín 5.", epp_en: "24h ER & primary stabilization for Zuata & Junin 5 crews." },
+      { id: 604, name: "CDI / Ambulatorio San Diego de Cabrutica", name_en: "San Diego de Cabrutica CDI Clinic", category: "salud", basin: "Anzoátegui Sur · Faja Orinoco", lat: 8.35, lng: -64.71, bpd: 0, epp: "Primeros auxilios, estabilización y traslado en ambulancia hacia Pariaguán / El Tigre.", epp_en: "First aid, stabilization & ambulance transfer to Pariaguan / El Tigre." },
+      { id: 605, name: "CDI Morichal / Hospital de Temblador", name_en: "Morichal CDI / Temblador Hospital", category: "salud", basin: "Monagas Sur · Bloque Carabobo", lat: 9.00, lng: -62.63, bpd: 0, epp: "Cobertura médica de emergencia para campos Cerro Negro, Morichal y Uracoa.", epp_en: "Emergency medical coverage for Cerro Negro, Morichal & Uracoa." },
+      { id: 606, name: "Hospital Dr. Rafael Zamora Arévalo (Valle de la Pascua)", name_en: "Valle de la Pascua General Hospital", category: "salud", basin: "Guárico · Bloque Boyacá", lat: 9.21, lng: -66.00, bpd: 0, epp: "Hospital de referencia para operaciones petroleras del Bloque Boyacá y Chaguaramas.", epp_en: "Referral hospital for Boyaca Block & Chaguaramas oil operations." },
+      { id: 607, name: "Hospital Univ. Ruiz y Páez (Ciudad Bolívar) / Razetti (Tucupita)", name_en: "Ciudad Bolívar & Tucupita Hospitals", category: "salud", basin: "Bolívar / Delta Amacuro", lat: 8.13, lng: -63.53, bpd: 0, epp: "Centros hospitalarios de alta complejidad en eje sur y deltaico de la Faja del Orinoco.", epp_en: "High-complexity hospitals on southern & deltaic Orinoco Belt." },
+      { id: 608, name: "Hospital Dr. Pedro García Clara (Ciudad Ojeda)", name_en: "Ciudad Ojeda General Hospital", category: "salud", basin: "Zulia · Costa Oriental", lat: 10.20, lng: -71.31, bpd: 0, epp: "Emergencia 24h y atención traumatológica para personal petrolero de la COL.", epp_en: "24h ER & trauma care for East Coast Lake Maracaibo oil workers." },
+
+      // ==================== TERMINALES TERRESTRES ====================
+      { id: 701, name: "Terminal de Pasajeros Cleto Quijada (El Tigre)", name_en: "El Tigre Bus Terminal", category: "terminal", basin: "Anzoátegui · Faja Orinoco", lat: 8.88, lng: -64.25, bpd: 0, epp: "Nodo principal de rotación de guardias hacia Caracas, Valencia, Maturín, San Tomé y Pariaguán.", epp_en: "Main crew rotation hub to Caracas, Valencia, Maturin, San Tome & Pariaguan." },
+      { id: 702, name: "Terminal Terrestre de Pariaguán", name_en: "Pariaguán Bus Terminal", category: "terminal", basin: "Anzoátegui · Bloque Junín", lat: 8.84, lng: -64.70, bpd: 0, epp: "Conexión de transporte hacia Zuata, San Diego de Cabrutica, Valle de la Pascua y El Tigre.", epp_en: "Transit hub to Zuata, San Diego de Cabrutica, Valle de la Pascua & El Tigre." },
+      { id: 703, name: "Terminal Interurbano de Maturín", name_en: "Maturín Intercity Terminal", category: "terminal", basin: "Monagas · Oriente / Faja", lat: 9.72, lng: -63.17, bpd: 0, epp: "Rutas directas hacia Morichal, Temblador, Punta de Mata, El Furrial y todo el país.", epp_en: "Direct routes to Morichal, Temblador, Punta de Mata, El Furrial & nationwide." },
+      { id: 704, name: "Terminal de Valle de la Pascua", name_en: "Valle de la Pascua Terminal", category: "terminal", basin: "Guárico · Bloque Boyacá", lat: 9.20, lng: -65.99, bpd: 0, epp: "Enlace terrestre entre el centro del país y los campos de Guárico y Anzoátegui.", epp_en: "Land link between central Venezuela and Guarico / Anzoategui oil fields." },
+      { id: 705, name: "Terminal de Pasajeros de Cabimas / Ciudad Ojeda", name_en: "Cabimas / Ciudad Ojeda Terminals", category: "terminal", basin: "Zulia · Costa Oriental", lat: 10.38, lng: -71.45, bpd: 0, epp: "Movilización de cuadrillas y encomiendas en toda la Costa Oriental del Lago.", epp_en: "Crew transit & parcel hub across East Coast Lake Maracaibo." },
+
+      // ==================== PROVEEDORES B2B / COMERCIOS ====================
+      { id: 801, name: "Central Dotación EPP Faja (Botas, Bragas, Cascos)", name_en: "Orinoco Belt PPE Supply Hub", category: "comercio", basin: "Anzoátegui · Monagas · Nacional", lat: 8.89, lng: -64.24, bpd: 0, epp: "Suministro al mayor para contratistas: Botas caña alta, bragas ignífugas, jeans 14oz, cascos y guantes. Cotiza por WhatsApp.", epp_en: "Wholesale contractor PPE: High-top boots, FR coveralls, 14oz jeans, helmets & gloves." },
+      { id: 802, name: "Repuestos y Rodamientos El Tigre 4x4", name_en: "El Tigre 4x4 Spare Parts", category: "comercio", basin: "Anzoátegui · Faja Orinoco", lat: 8.88, lng: -64.23, bpd: 0, epp: "Repuestos suspensión, tren delantero, filtros y rodamientos para flotas petroleras.", epp_en: "Suspension, drivetrain, filters & bearings for oilfield fleets." },
+      { id: 803, name: "Parador Vial & Comedor Cuadrillas Ruta Zuata", name_en: "Zuata Road Stop & Crew Catering", category: "comercio", basin: "Anzoátegui · Corredor Cabrutica-Zuata", lat: 8.48, lng: -64.72, bpd: 0, epp: "Desayunos, almuerzos ejecutivos/obreros, estacionamiento gandolas y despacho a taladros.", epp_en: "Breakfast, crew lunches, heavy truck parking & rig meal delivery." }
+    ];
+
+    let nodes = JSON.parse(localStorage.getItem('vp_nodes_master_v1')) || defaultNodes;
+
+    // Map Setup
+    const map = L.map('map').setView([8.9, -65.2], 6);
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      attribution: 'Esri Satellite · VenePetrol Intel B2B'
+    }).addTo(map);
+    let markersLayer = L.layerGroup().addTo(map);
+
+    function toggleDrawer(open) {
+      const drawer = document.getElementById('sideDrawer');
+      const backdrop = document.getElementById('drawerBackdrop');
+      if (open) {
+        drawer.classList.add('open');
+        backdrop.style.display = 'block';
+      } else {
+        drawer.classList.remove('open');
+        backdrop.style.display = 'none';
+      }
+    }
+
+    function selectFromDrawer(cat) {
+      toggleDrawer(false);
+      currentCategory = cat;
+      document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+      render();
+    }
+
+    function toggleLanguage(lang) {
+      currentLanguage = lang;
+      localStorage.setItem('vp_lang', lang);
+      document.getElementById('langSel').value = lang;
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (i18n[lang][key]) el.innerText = i18n[lang][key];
+      });
+      const sp = JSON.parse(localStorage.getItem('vp_sponsor_v1'));
+      if (sp) {
+        document.getElementById('spTitle').innerText = sp.title;
+        document.getElementById('spDesc').innerText = sp.desc;
+      }
+      updateVIPBadge();
+      render();
+    }
+
+    function updateVIPBadge() {
+      const kpiVip = document.getElementById('kpi-vip');
+      if (isVIP) {
+        kpiVip.innerText = "🔓 VIP Activo";
+        kpiVip.style.color = "#10b981";
+      } else {
+        kpiVip.innerText = "🔒 Invitado";
+        kpiVip.style.color = "#d8b4fe";
+      }
+    }
+
+    function unlockVIP() {
+      const val = document.getElementById('vipCodeInput').value.trim();
+      if (val.toUpperCase() === vipPassword.toUpperCase()) {
+        isVIP = true;
+        localStorage.setItem('vp_is_vip', 'true');
+        updateVIPBadge();
+        renderFichasList();
+        render();
+        alert("✅ ¡Acceso VIP Desbloqueado! Ya puedes ver todas las fichas técnicas, direcciones de procura y fuerza laboral.");
+      } else {
+        alert("❌ Clave incorrecta. Solicita tu clave VIP por WhatsApp al +58 412-1788766.");
+      }
+    }
+
+    async function fetchWeather(lat, lng) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+        const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,wind_speed_10m`, { signal: controller.signal });
+        clearTimeout(timeoutId);
+        const data = await res.json();
+        if (data && data.current) {
+          return `${data.current.temperature_2m}°C · Viento: ${data.current.wind_speed_10m} km/h`;
+        }
+      } catch (e) { return null; }
+      return null;
+    }
+
+    function getCategoryColor(cat) {
+      const colors = {
+        petroleo: '#f59e0b',
+        oficinas: '#3b82f6',
+        internacional: '#a855f7',
+        nacional: '#ea580c',
+        seguridad: '#16a34a',
+        combustible: '#dc2626',
+        salud: '#e11d48',
+        terminal: '#cbd5e1',
+        comercio: '#10b981'
+      };
+      return colors[cat] || '#38bdf8';
+    }
+
+    function render() {
+      markersLayer.clearLayers();
+      const list = document.getElementById('nodesList');
+      list.innerHTML = '';
+
+      const searchWord = document.getElementById('searchInput').value.toLowerCase();
+      let totalBpd = 0;
+
+      const filtered = nodes.filter(n => {
+        const nameText = currentLanguage === 'es' ? n.name : (n.name_en || n.name);
+        const matchCat = currentCategory === 'TODAS' || n.category === currentCategory;
+        const matchSearch = nameText.toLowerCase().includes(searchWord) ||
+                            n.basin.toLowerCase().includes(searchWord) ||
+                            (n.signal && n.signal.toLowerCase().includes(searchWord)) ||
+                            (!n.vip && n.epp && n.epp.toLowerCase().includes(searchWord));
+        return matchCat && matchSearch;
+      });
+
+      filtered.forEach(n => {
+        totalBpd += Number(n.bpd || 0);
+        const isLocked = n.vip && !isVIP;
+        const nameToShow = currentLanguage === 'es' ? n.name : (n.name_en || n.name);
+        const descToShow = currentLanguage === 'es' ? n.epp : (n.epp_en || n.epp);
+
+        const marker = L.circleMarker([n.lat, n.lng], {
+          radius: (n.category === 'petroleo' || n.category === 'internacional') ? 8 : 6.5,
+          fillColor: getCategoryColor(n.category),
+          color: '#fff', weight: 1.5, fillOpacity: 0.95
+        }).addTo(markersLayer);
+
+        marker.on('click', async () => {
+          map.setView([n.lat, n.lng], 9);
+          const detailHtml = isLocked
+            ? `<div style="margin:5px 0; padding:6px; background:#f3e8ff; color:#581c87; border-radius:4px; font-size:11px;"><b>🔒 Ficha Técnica Bloqueada (VIP)</b><br/>Suscríbete para ver sede exacta, trabajo y trabajadores.</div>`
+            : `${n.workers ? `👷 ${n.workers}<br/>` : ''}${descToShow ? `ℹ️ ${descToShow}<br/>` : ''}${n.signal ? `📡 ${n.signal}<br/>` : ''}`;
+
+          const basePopup = `
+            <div style="max-width:240px;">
+              <b>${nameToShow}</b><br/>
+              <span style="font-size:11px; color:#475569;">📍 ${n.basin}</span><br/>
+              ${n.bpd > 0 ? `🛢️ ${Number(n.bpd).toLocaleString()} BPD<br/>` : ''}
+              ${detailHtml}
+            </div>
+          `;
+          marker.bindPopup(`${basePopup}<b style="color:#0284c7; font-size:11px;">🌤️ Consultando clima...</b>`).openPopup();
+          const weather = await fetchWeather(n.lat, n.lng);
+          const wText = weather ? `🌤️ ${weather}` : "🌤️ Clima: Red lenta / sin respuesta";
+          marker.setPopupContent(`${basePopup}<b style="color:#0284c7; font-size:11px;">${wText}</b>`);
+        });
+
+        const card = document.createElement('div');
+        card.className = 'item-card';
+
+        let bodyContent = '';
+        if (isLocked) {
+          bodyContent = `
+            <div class="vip-lock-box">
+              <p>🔒 <b>Ficha Técnica Protegida:</b> Incluye dirección de procura, trabajo que desarrolla en Venezuela y fuerza laboral estimada.</p>
+              <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                <button class="vip-btn" style="padding:5px 9px; font-size:11px;" onclick="event.stopPropagation(); openFichasModal();">
+                  <i class="fa-solid fa-key"></i> Ingresar Clave VIP
+                </button>
+                <button class="quote-btn" style="padding:5px 9px; font-size:11px;" onclick="event.stopPropagation(); window.open('https://wa.me/${WHATSAPP_NUM}?text=Hola%20Jose%20Nery,%20quiero%20desbloquear%20la%20ficha%20VIP%20de%20${encodeURIComponent(nameToShow)}','_blank');">
+                  <i class="fa-brands fa-whatsapp"></i> Suscribirme VIP
+                </button>
+              </div>
+            </div>
+          `;
+        } else {
+          bodyContent = `
+            <div class="item-desc">
+              ${n.workers ? `<div style="color:#d8b4fe; font-weight:700; margin-bottom:3px;">👷 Fuerza Laboral Est.: ${n.workers}</div>` : ''}
+              ${descToShow || ''}
+              ${n.signal ? `<div class="signal-tag">📡 ${n.signal}</div>` : ''}
+            </div>
+          `;
+        }
+
+        card.innerHTML = `
+          <div class="item-head">
+            <h4>${nameToShow}</h4>
+            <span class="cat-badge ${n.category}">${i18n[currentLanguage][n.category] || n.category}</span>
+          </div>
+          <div class="item-meta">
+            <span>📍 ${n.basin}</span>
+            ${n.bpd > 0 ? `<span>🛢️ ${Number(n.bpd).toLocaleString()} BPD</span>` : ''}
+          </div>
+          ${bodyContent}
+        `;
+
+        card.onclick = () => {
+          map.setView([n.lat, n.lng], 9);
+          marker.fire('click');
+        };
+        list.appendChild(card);
+      });
+
+      document.getElementById('kpi-nodes').innerText = filtered.length;
+      document.getElementById('kpi-bpd').innerText = totalBpd.toLocaleString();
+    }
+
+    function filterCategory(cat, btn) {
+      currentCategory = cat;
+      document.querySelectorAll('.cat-btn').forEach(c => c.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      render();
+    }
+
+    function openFichasModal() {
+      renderFichasList();
+      document.getElementById('fichasModal').style.display = 'flex';
+    }
+
+    function renderFichasList() {
+      const container = document.getElementById('fichasContainer');
+      const companies = nodes.filter(n => n.category === 'internacional' || n.category === 'nacional');
+      document.getElementById('vipUnlockBar').style.display = isVIP ? 'none' : 'block';
+
+      container.innerHTML = companies.map(c => {
+        const typeLabel = c.category === 'internacional' ? 'Internacional / Mixta' : 'Contratista Nacional';
+        if (!isVIP) {
+          return `
+            <div class="ficha-item">
+              <div style="display:flex; justify-content:space-between; align-items:center; gap:6px;">
+                <strong style="font-size:13px;">${c.name}</strong>
+                <span class="cat-badge ${c.category}">${typeLabel}</span>
+              </div>
+              <div style="font-size:11px; color:var(--muted); margin:4px 0;">📍 ${c.basin}</div>
+              <div style="font-size:11px; color:#e9d5ff; background:rgba(147,51,234,0.15); padding:6px; border-radius:5px;">
+                🔒 Ficha técnica, sede exacta, trabajo y trabajadores bloqueados. Activa tu clave VIP arriba.
+              </div>
+            </div>
+          `;
+        }
+        return `
+          <div class="ficha-item" style="border-color:var(--vip);">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:6px;">
+              <strong style="font-size:13px; color:#fff;">${c.name}</strong>
+              <span class="cat-badge ${c.category}">${typeLabel}</span>
+            </div>
+            <div style="font-size:11px; color:var(--accent-2); margin:4px 0;">📍 ${c.basin} ${c.workers ? `· 👷 ${c.workers}` : ''}</div>
+            <p style="font-size:11.5px; color:var(--text); line-height:1.45;">${c.epp}</p>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function openQuoteModal() {
+      document.getElementById('quoteModal').style.display = 'flex';
+    }
+
+    function sendQuoteWhatsApp() {
+      const comp = document.getElementById('qCompany').value || "Contratista / Cliente";
+      const zone = document.getElementById('qZone').value || "Faja del Orinoco";
+      const type = document.getElementById('qType').value;
+      const detail = document.getElementById('qDetail').value || "Solicito información y precios.";
+      const msg = `Hola José Nery, solicito cotización vía *VenePetrol Intel*:%0A• *Empresa:* ${comp}%0A• *Zona/Campo:* ${zone}%0A• *Rubro:* ${type}%0A• *Detalle:* ${detail}`;
+      window.open(`https://wa.me/${WHATSAPP_NUM}?text=${msg}`, '_blank');
+    }
+
+    function openProModal() {
+      document.getElementById('proModal').style.display = 'flex';
+    }
+
+    function openAdmin() {
+      const pass = prompt("Clave de Administrador:");
+      if (pass !== "ADMIN2026") return alert("Clave incorrecta");
+
+      document.getElementById('inVipPass').value = vipPassword;
+      const sp = JSON.parse(localStorage.getItem('vp_sponsor_v1')) || {
+        title: document.getElementById('spTitle').innerText,
+        desc: document.getElementById('spDesc').innerText
+      };
+      document.getElementById('inSpTitle').value = sp.title;
+      document.getElementById('inSpDesc').value = sp.desc;
+
+      const sel = document.getElementById('selNode');
+      sel.innerHTML = `<option value="new">[ + CREAR NUEVO PUNTO / EMPRESA ]</option>` +
+        nodes.map(n => `<option value="${n.id}">${n.name} [${n.category}]</option>`).join('');
+      loadNodeData('new');
+      document.getElementById('adminModal').style.display = 'flex';
+    }
+
+    function loadNodeData(val) {
+      const isNew = val === 'new';
+      document.getElementById('btnDelete').style.display = isNew ? 'none' : 'block';
+      if (isNew) {
+        document.getElementById('inNodeName').value = '';
+        document.getElementById('inNodeNameEn').value = '';
+        document.getElementById('inNodeCategory').value = 'comercio';
+        document.getElementById('inNodeBasin').value = '';
+        document.getElementById('inNodeLat').value = 8.85;
+        document.getElementById('inNodeLng').value = -64.70;
+        document.getElementById('inNodeBpd').value = 0;
+        document.getElementById('inNodeWorkers').value = '';
+        document.getElementById('inNodeSignal').value = '';
+        document.getElementById('inNodeEpp').value = '';
+        document.getElementById('inNodeEppEn').value = '';
+      } else {
+        const f = nodes.find(x => x.id == val);
+        if (f) {
+          document.getElementById('inNodeName').value = f.name;
+          document.getElementById('inNodeNameEn').value = f.name_en || f.name;
+          document.getElementById('inNodeCategory').value = f.category;
+          document.getElementById('inNodeBasin').value = f.basin;
+          document.getElementById('inNodeLat').value = f.lat;
+          document.getElementById('inNodeLng').value = f.lng;
+          document.getElementById('inNodeBpd').value = f.bpd || 0;
+          document.getElementById('inNodeWorkers').value = f.workers || '';
+          document.getElementById('inNodeSignal').value = f.signal || '';
+          document.getElementById('inNodeEpp').value = f.epp || '';
+          document.getElementById('inNodeEppEn').value = f.epp_en || '';
+        }
+      }
+    }
+
+    function saveAdmin() {
+      const newVip = document.getElementById('inVipPass').value.trim();
+      if (newVip) {
+        vipPassword = newVip;
+        localStorage.setItem('vp_vip_pass', vipPassword);
+      }
+
+      const sp = {
+        title: document.getElementById('inSpTitle').value,
+        desc: document.getElementById('inSpDesc').value
+      };
+      localStorage.setItem('vp_sponsor_v1', JSON.stringify(sp));
+
+      const selVal = document.getElementById('selNode').value;
+      const cat = document.getElementById('inNodeCategory').value;
+      const nameVal = document.getElementById('inNodeName').value.trim();
+
+      if (nameVal) {
+        const data = {
+          name: nameVal,
+          name_en: document.getElementById('inNodeNameEn').value || nameVal,
+          category: cat,
+          basin: document.getElementById('inNodeBasin').value || "Venezuela",
+          lat: Number(document.getElementById('inNodeLat').value),
+          lng: Number(document.getElementById('inNodeLng').value),
+          bpd: Number(document.getElementById('inNodeBpd').value) || 0,
+          workers: document.getElementById('inNodeWorkers').value,
+          signal: document.getElementById('inNodeSignal').value,
+          vip: (cat === 'internacional' || cat === 'nacional'),
+          epp: document.getElementById('inNodeEpp').value,
+          epp_en: document.getElementById('inNodeEppEn').value
+        };
+
+        if (selVal === 'new') {
+          data.id = Date.now();
+          nodes.push(data);
+        } else {
+          const idx = nodes.findIndex(x => x.id == selVal);
+          if (idx > -1) {
+            data.id = Number(selVal);
+            nodes[idx] = data;
+          }
+        }
+        localStorage.setItem('vp_nodes_master_v1', JSON.stringify(nodes));
+      }
+
+      toggleLanguage(currentLanguage);
+      closeModals();
+    }
+
+    function deleteNode() {
+      const val = document.getElementById('selNode').value;
+      if (val !== 'new' && confirm("¿Eliminar este registro?")) {
+        nodes = nodes.filter(x => x.id != val);
+        localStorage.setItem('vp_nodes_master_v1', JSON.stringify(nodes));
+        toggleLanguage(currentLanguage);
+        closeModals();
+      }
+    }
+
+    function installPWA() {
+      alert("📲 Para instalar VenePetrol Intel como App en tu teléfono:\n\n• En Android (Chrome): Toca los 3 puntos (⋮) arriba a la derecha y selecciona 'Agregar a la pantalla principal' o 'Instalar aplicación'.\n• En iPhone (Safari): Toca el botón 'Compartir' abajo y elige 'Agregar a inicio'.");
+    }
+
+    function closeModals() {
+      document.querySelectorAll('.modal-backdrop').forEach(m => m.style.display = 'none');
+    }
+
+    toggleLanguage(currentLanguage);
+  </script>
+</body>
+</html>
