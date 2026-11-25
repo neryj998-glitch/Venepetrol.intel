@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+<meta name="theme-color" content="#0b0f17"/>
+<title>VenePetrol Intel B2B · Procura RFQ, Taladros, HSE/API, Oleoductos & BCV/USDT</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+<style>
+:root{--bg:#0b0f17;--panel:#131a26;--panel2:#1a2333;--border:#263248;--accent:#f59e0b;--accent2:#38bdf8;--vip:#a855f7;--text:#f1f5f9;--muted:#94a3b8;--success:#10b981;--danger:#ef4444}
+*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,sans-serif}
+body{background:var(--bg);color:var(--text);display:flex;flex-direction:column;min-height:100vh}
+
+/* Bandera de Venezuela en Movimiento (CSS + SVG) */
+.ve-flag-wrap{display:inline-flex;align-items:center;justify-content:center;perspective:260px;vertical-align:middle}
+.ve-flag{width:30px;height:20px;border-radius:3px;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,.6);transform-origin:left center;animation:flagWave 2.4s ease-in-out infinite;position:relative;border:1px solid rgba(255,255,255,.2)}
+.ve-flag::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(255,255,255,.22) 0%,rgba(0,0,0,.15) 35%,rgba(255,255,255,.25) 65%,rgba(0,0,0,.2) 100%);background-size:200% 100%;animation:flagShimmer 2.4s linear infinite;pointer-events:none}
+@keyframes flagWave{
+  0%,100%{transform:rotateY(0deg) skewY(0deg) scaleX(1)}
+  25%{transform:rotateY(14deg) skewY(-2.5deg) scaleX(.97)}
+  50%{transform:rotateY(-8deg) skewY(2deg) scaleX(1.01)}
+  75%{transform:rotateY(12deg) skewY(-2deg) scaleX(.98)}
+}
+@keyframes flagShimmer{
+  0%{background-position:200% 0}
+  100%{background-position:0% 0}
+}
+
+header{background:var(--panel);border-bottom:1px solid var(--border);padding:8px 12px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:1100}
+.brand-group{display:flex;align-items:center;gap:8px}
+.menu-toggle{background:var(--panel2);border:1px solid var(--border);color:var(--accent);padding:7px 10px;border-radius:6px;font-size:15px;cursor:pointer}
+.brand{display:flex;align-items:center;gap:7px}
+.brand h1{font-size:15.5px;font-weight:800}.brand span{color:var(--accent)}
+.badge-pro{background:var(--accent);color:#000;font-weight:800;font-size:9px;padding:2px 5px;border-radius:4px}
+.actions{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+select.op-selector{background:var(--panel2);color:var(--text);border:1px solid var(--accent2);padding:6px;border-radius:6px;font-size:11.5px;max-width:180px;font-weight:600}
+button{background:var(--panel2);color:var(--text);border:1px solid var(--border);padding:6px 9px;border-radius:6px;font-size:11.5px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:4px}
+button:hover{border-color:var(--accent)}
+button.primary{background:var(--accent);color:#000;border-color:var(--accent);font-weight:700}
+button.vip-btn{background:linear-gradient(135deg,#9333ea,#6b21a8);color:#fff;border-color:#a855f7}
+button.quote-btn{background:#10b981;color:#000;border-color:#10b981;font-weight:700}
+button.calc-btn{background:#0284c7;color:#fff;border-color:#38bdf8}
+button.rfq-btn{background:#ea580c;color:#fff;border-color:#fb923c;font-weight:700}
+button.lang-btn{background:#1e293b;color:#38bdf8;border-color:#38bdf8;font-weight:800}
+
+.radar-bar{background:linear-gradient(90deg,#451a03,#78350f,#451a03);border-bottom:1px solid #f59e0b;padding:7px 12px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px;font-size:11.5px}
+.radar-tag{background:#f59e0b;color:#000;font-weight:800;font-size:9.5px;padding:2px 6px;border-radius:4px;text-transform:uppercase;margin-right:6px}
+
+.drawer-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:1500}
+.side-drawer{position:fixed;top:0;left:-295px;width:285px;height:100vh;background:var(--panel);border-right:1px solid var(--border);z-index:1600;transition:left .2s;overflow-y:auto;padding:12px}
+.side-drawer.open{left:0}
+.drawer-head{display:flex;justify-content:space-between;align-items:center;padding-bottom:10px;border-bottom:1px solid var(--border);margin-bottom:8px}
+.drawer-sec{font-size:10px;text-transform:uppercase;color:var(--muted);margin:9px 0 4px 4px;font-weight:700}
+.drawer-item{width:100%;justify-content:flex-start;background:transparent;border:none;padding:8px;border-radius:6px;font-size:12px;color:var(--text);text-align:left}
+.drawer-item:hover{background:var(--panel2);color:var(--accent)}
+
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:6px;padding:8px 12px;background:#0e1420;border-bottom:1px solid var(--border)}
+.kpi{background:var(--panel);border:1px solid var(--border);border-radius:7px;padding:6px 8px}
+.kpi label{font-size:9px;color:var(--muted);text-transform:uppercase;display:block}
+.kpi .val{font-size:14px;font-weight:800;margin-top:1px;color:var(--accent2)}
+.search-bar{padding:8px 12px;background:var(--panel);border-bottom:1px solid var(--border);display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.search-wrap{flex:1;min-width:170px;position:relative}
+.search-wrap input{width:100%;background:var(--bg);border:1px solid var(--border);color:#fff;padding:7px 10px 7px 28px;border-radius:6px;font-size:12px}
+.search-wrap i{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--muted)}
+.cat-filters{display:flex;gap:5px;overflow-x:auto;scrollbar-width:none;width:100%}
+.cat-filters::-webkit-scrollbar{display:none}
+.cat-btn{white-space:nowrap;border-radius:20px;padding:4px 10px;font-size:10.5px;background:var(--panel2);color:var(--text);border:1px solid var(--border)}
+.cat-btn.active{background:var(--accent);color:#000;border-color:var(--accent);font-weight:700}
+.cat-btn.hse-pill{border-color:#10b981;color:#6ee7b7}
+.cat-btn.hse-pill.active{background:#10b981;color:#000;border-color:#10b981}
+
+.main-grid{display:grid;grid-template-columns:1fr;flex:1}
+@media(min-width:920px){.main-grid{grid-template-columns:1.35fr 1fr}}
+#map{width:100%;height:375px;z-index:1}
+@media(min-width:920px){#map{height:calc(100vh - 245px)}}
+.sidebar{padding:10px 12px;overflow-y:auto;max-height:calc(100vh - 245px);display:flex;flex-direction:column;gap:9px}
+.sponsor-box{background:linear-gradient(135deg,#1e293b,#0f172a);border:1px solid var(--accent);border-radius:8px;padding:10px}
+.sponsor-box h3{font-size:13px;margin:2px 0}.sponsor-box p{font-size:11px;color:var(--muted);line-height:1.4}
+.card-list{display:flex;flex-direction:column;gap:8px}
+.item-card{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px;cursor:pointer}
+.item-card:hover{border-color:var(--accent2)}
+.item-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;gap:6px}
+.item-head h4{font-size:12.5px;color:#fff}
+.cat-badge{font-size:9px;padding:2px 6px;border-radius:10px;font-weight:700;text-transform:uppercase;white-space:nowrap}
+.cat-badge.petroleo{background:rgba(245,158,11,.15);color:#fbbf24}.cat-badge.oficinas{background:rgba(59,130,246,.15);color:#60a5fa}
+.cat-badge.internacional{background:rgba(168,85,247,.18);color:#d8b4fe}.cat-badge.nacional{background:rgba(234,88,12,.18);color:#fdba74}
+.cat-badge.talento{background:rgba(14,165,233,.18);color:#7dd3fc}.cat-badge.licitaciones{background:rgba(16,185,129,.18);color:#6ee7b7}
+.cat-badge.vialidad{background:rgba(234,179,8,.18);color:#fde047}.cat-badge.taller{background:rgba(249,115,22,.18);color:#fdba74}
+.cat-badge.cauchera{background:rgba(239,68,68,.18);color:#fca5a5}.cat-badge.parador{background:rgba(236,72,153,.18);color:#f9a8d4}
+.cat-badge.ducto{background:rgba(6,182,212,.2);color:#67e8f9}.cat-badge.taladro{background:rgba(244,63,94,.22);color:#fda4af}
+.cat-badge.seguridad{background:rgba(21,128,61,.2);color:#86efac}.cat-badge.combustible{background:rgba(220,38,38,.18);color:#fca5a5}
+.cat-badge.salud{background:rgba(225,29,72,.18);color:#fda4af}.cat-badge.terminal{background:rgba(148,163,184,.18);color:#cbd5e1}
+.cat-badge.comercio{background:rgba(16,185,129,.15);color:#6ee7b7}
+
+.badges-row{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:5px}
+.pill-tag{display:inline-block;font-size:9.5px;font-weight:700;padding:2px 6px;border-radius:4px;background:rgba(2,132,199,.2);color:#7dd3fc}
+.pill-tag.restricted{background:rgba(239,68,68,.18);color:#fca5a5}
+.pill-tag.verified{background:rgba(16,185,129,.22);color:#6ee7b7;border:1px solid rgba(16,185,129,.45)}
+.pill-tag.free30{background:rgba(245,158,11,.2);color:#fde047;border:1px solid rgba(245,158,11,.4)}
+.pill-tag.h24{background:rgba(239,68,68,.25);color:#fecaca;border:1px solid rgba(239,68,68,.45)}
+.pill-tag.hse{background:rgba(16,185,129,.18);color:#a7f3d0;border:1px solid rgba(16,185,129,.4)}
+
+.item-meta{font-size:11px;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px}
+.item-desc{font-size:11px;color:var(--text);background:var(--panel2);padding:6px 8px;border-radius:6px;line-height:1.4}
+.signal-tag{display:inline-block;margin-top:4px;font-size:10px;color:#38bdf8;background:rgba(56,189,248,.1);padding:2px 6px;border-radius:4px}
+.vip-lock{background:rgba(147,51,234,.16);border:1px dashed #a855f7;border-radius:6px;padding:8px;margin-top:4px}
+.vip-lock p{font-size:10.5px;color:#e9d5ff;margin-bottom:5px}
+
+.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:2000;align-items:center;justify-content:center;padding:12px}
+.modal{background:var(--panel);border:1px solid var(--border);border-radius:10px;width:100%;max-width:550px;padding:14px;max-height:90vh;overflow-y:auto}
+.modal h2{font-size:15px;margin-bottom:8px;color:var(--accent);display:flex;align-items:center;gap:6px}
+.tab-row{display:flex;gap:5px;margin-bottom:10px;flex-wrap:wrap}
+.tab-btn{flex:1;justify-content:center;padding:6px;font-size:11px;background:var(--panel2);border:1px solid var(--border)}
+.tab-btn.active{background:var(--accent);color:#000;border-color:var(--accent);font-weight:700}
+.field{margin-bottom:8px}.field label{display:block;font-size:10.5px;color:var(--muted);margin-bottom:2px}
+.field input,.field select,.field textarea{width:100%;background:var(--bg);border:1px solid var(--border);color:#fff;padding:7px;border-radius:6px;font-size:12.5px}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.ficha-item{background:var(--panel2);border:1px solid var(--border);border-radius:7px;padding:9px;margin-bottom:7px}
+.calc-res{background:#0e1420;border:1px solid var(--accent2);border-radius:8px;padding:10px;margin-top:8px}
+.rfq-card{background:var(--panel2);border-left:3px solid #f97316;border-radius:7px;padding:9px;margin-bottom:8px}
+.rfq-code{background:#431407;color:#fdba74;font-weight:800;font-size:10px;padding:2px 6px;border-radius:4px}
+</style>
+</head>
+<body>
+<div class="drawer-backdrop" id="drawerBackdrop" onclick="toggleDrawer(false)"></div>
+<nav class="side-drawer" id="sideDrawer">
+  <div class="drawer-head">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div class="ve-flag-wrap" title="República Bolivariana de Venezuela">
+        <div class="ve-flag">
+          <svg viewBox="0 0 90 60" width="100%" height="100%" preserveAspectRatio="none">
+            <rect width="90" height="20" y="0" fill="#FCE300"/>
+            <rect width="90" height="20" y="20" fill="#0033A0"/>
+            <rect width="90" height="20" y="40" fill="#EF3340"/>
+            <g fill="#FFFFFF">
+              <circle cx="29" cy="34" r="1.4"/><circle cx="32.5" cy="29.5" r="1.4"/>
+              <circle cx="37.5" cy="26.5" r="1.4"/><circle cx="42.5" cy="25" r="1.4"/>
+              <circle cx="47.5" cy="25" r="1.4"/><circle cx="52.5" cy="26.5" r="1.4"/>
+              <circle cx="57.5" cy="29.5" r="1.4"/><circle cx="61" cy="34" r="1.4"/>
+            </g>
+          </svg>
+        </div>
+      </div>
+      <div><strong style="font-size:14px;">VenePetrol <span style="color:var(--accent)">Intel B2B</span></strong><div style="font-size:10px;color:var(--muted);">Venepetrolintel3D@gmail.com</div></div>
+    </div>
+    <button onclick="toggleDrawer(false)"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+  <div class="drawer-sec" data-i18n="secTools">Herramientas Ejecutivas & VIP</div>
+  <button class="drawer-item" onclick="window.location.href='portal.html'"><i class="fa-solid fa-building-columns" style="color:var(--accent)"></i> 🌐 Portal Corporativo & Executive Briefing</button>
+  <button class="drawer-item" onclick="toggleDrawer(false);openRfqModal('lista')"><i class="fa-solid fa-boxes-packing" style="color:#fb923c"></i> Mesa de Procura / RFQ (Exportar CSV)</button>
+  <button class="drawer-item" onclick="toggleDrawer(false);openCalcModal('budget')"><i class="fa-solid fa-calculator" style="color:var(--accent2)"></i> Calculadora BCV/USDT & Conversor BBL/PSI</button>
+  <button class="drawer-item" onclick="toggleDrawer(false);toggleLang()"><i class="fa-solid fa-language" style="color:var(--accent2)"></i> <span data-i18n="btnLangMenu">Cambiar Idioma (ES / EN)</span></button>
+  <button class="drawer-item" onclick="toggleDrawer(false);openPlanillasModal('talento')"><i class="fa-solid fa-id-card-clip" style="color:var(--success)"></i> Planillas: Técnico / Equipo / 1 Mes Gratis</button>
+  <button class="drawer-item" onclick="toggleDrawer(false);openFichasModal()"><i class="fa-solid fa-file-contract" style="color:var(--vip)"></i> Directorio VIP (Empresas & Talento)</button>
+  <button class="drawer-item" onclick="toggleDrawer(false);openOfacModal()"><i class="fa-solid fa-scale-balanced" style="color:var(--accent2)"></i> Monitor Licencias OFAC (2026)</button>
+  <button class="drawer-item" onclick="toggleDrawer(false);openRupModal()"><i class="fa-solid fa-clipboard-check" style="color:var(--success)"></i> Requisitos RUP / RAC y RNC</button>
+  <button class="drawer-item" onclick="toggleDrawer(false);openProModal()"><i class="fa-solid fa-crown" style="color:var(--accent)"></i> Sello Verificado & Planes VIP</button>
+  <button class="drawer-item" onclick="installPWA()"><i class="fa-solid fa-mobile-screen-button" style="color:var(--accent2)"></i> Instalar App en Teléfono</button>
+
+  <div class="drawer-sec" data-i18n="secLayers">Capas Operativas del Mapa</div>
+  <button class="drawer-item" onclick="selectCat('TODAS')">Todos los Registros</button>
+  <button class="drawer-item" onclick="selectCat('HSE')">🛡️ Estándar HSE / API / OSHA</button>
+  <button class="drawer-item" onclick="selectCat('taladro')">🏗️ Taladros Activos (Perforación / Workover)</button>
+  <button class="drawer-item" onclick="selectCat('ducto')">🔗 Corredores Oleoductos & Gasoductos</button>
+  <button class="drawer-item" onclick="selectCat('talento')">👷 Personal & Equipos Certificados</button>
+  <button class="drawer-item" onclick="selectCat('taller')">🔧 Talleres Maquinaria Pesada (1 Mes Gratis)</button>
+  <button class="drawer-item" onclick="selectCat('cauchera')">🛞 Caucheras 24h / 12h (1 Mes Gratis)</button>
+  <button class="drawer-item" onclick="selectCat('parador')">🍽️ Restaurantes & Paradores (1 Mes Gratis)</button>
+  <button class="drawer-item" onclick="selectCat('licitaciones')">📋 Licitaciones & Procura (RUP/RNC)</button>
+  <button class="drawer-item" onclick="selectCat('vialidad')">🚧 Alertas Viales, Peajes y Carga</button>
+  <button class="drawer-item" onclick="selectCat('petroleo')">🛢️ Campos Petroleros (38)</button>
+  <button class="drawer-item" onclick="selectCat('seguridad')">🛡️ Comandos GNB y Policía (14)</button>
+  <button class="drawer-item" onclick="selectCat('oficinas')">🏢 Oficinas PDVSA (10)</button>
+  <button class="drawer-item" onclick="selectCat('internacional')">🌐 Internacionales / Mixtas (12)</button>
+  <button class="drawer-item" onclick="selectCat('nacional')">🏗️ Contratistas Nacionales (10)</button>
+  <button class="drawer-item" onclick="selectCat('combustible')">⛽ Estaciones Gasoil / Gasolina (16)</button>
+  <button class="drawer-item" onclick="selectCat('salud')">🏥 Hospitales, Clínicas y CDI</button>
+  <button class="drawer-item" onclick="selectCat('terminal')">🚌 Terminales Terrestres</button>
+  <button class="drawer-item" onclick="selectCat('comercio')">🏪 Proveedores B2B / EPP</button>
+
+  <div class="drawer-sec">Administración</div>
+  <button class="drawer-item" onclick="toggleDrawer(false);openAdmin()"><i class="fa-solid fa-lock" style="color:var(--accent)"></i> Panel Admin (Editar / Radar / RFQ)</button>
+</nav>
+
+<header>
+  <div class="brand-group">
+    <button class="menu-toggle" onclick="toggleDrawer(true)"><i class="fa-solid fa-bars"></i></button>
+    <div class="brand">
+      <div class="ve-flag-wrap" title="República Bolivariana de Venezuela">
+        <div class="ve-flag">
+          <svg viewBox="0 0 90 60" width="100%" height="100%" preserveAspectRatio="none">
+            <rect width="90" height="20" y="0" fill="#FCE300"/>
+            <rect width="90" height="20" y="20" fill="#0033A0"/>
+            <rect width="90" height="20" y="40" fill="#EF3340"/>
+            <g fill="#FFFFFF">
+              <circle cx="29" cy="34" r="1.4"/><circle cx="32.5" cy="29.5" r="1.4"/>
+              <circle cx="37.5" cy="26.5" r="1.4"/><circle cx="42.5" cy="25" r="1.4"/>
+              <circle cx="47.5" cy="25" r="1.4"/><circle cx="52.5" cy="26.5" r="1.4"/>
+              <circle cx="57.5" cy="29.5" r="1.4"/><circle cx="61" cy="34" r="1.4"/>
+            </g>
+          </svg>
+        </div>
+      </div>
+      <div><h1>VenePetrol <span>Intel</span></h1><span class="badge-pro">B2B · FAJA & NACIONAL</span></div>
+    </div>
+  </div>
+  <div class="actions">
+    <button class="lang-btn" id="langBtn" onclick="toggleLang()"><i class="fa-solid fa-globe"></i> EN</button>
+    <button class="rfq-btn" onclick="openRfqModal('lista')"><i class="fa-solid fa-boxes-packing"></i> <span data-i18n="btnRfq">Procura RFQ</span></button>
+    <button class="quote-btn" onclick="openPlanillasModal('talento')"><i class="fa-solid fa-id-card-clip"></i> <span data-i18n="btnForms">Planillas</span></button>
+    <button class="calc-btn" onclick="openCalcModal('budget')"><i class="fa-solid fa-calculator"></i> BCV/USDT</button>
+    <button class="vip-btn" onclick="openFichasModal()"><i class="fa-solid fa-file-contract"></i> VIP</button>
+    <button class="primary" onclick="openAdmin()"><i class="fa-solid fa-lock"></i></button>
+  </div>
+</header>
+
+<div class="radar-bar">
+  <div>
+    <span class="radar-tag" data-i18n="radarTag">🚨 RADAR HOY</span>
+    <span id="radarText">Se requieren 300 pares botas petroleras caña alta en El Tigre/San Tomé y 2 Camas Bajas 50T certificadas en Pariaguán.</span>
+  </div>
+  <button class="quote-btn" style="padding:4px 8px;font-size:10.5px;" onclick="window.open('https://wa.me/584121788766?text=Hola%20Jose%20Nery,%20tengo%20disponibilidad%20para%20el%20aviso%20del%20RADAR%20URGENTE%20en%20VenePetrol%20Intel','_blank')"><i class="fa-brands fa-whatsapp"></i> <span data-i18n="btnApply">Postular / Cotizar</span></button>
+</div>
+
+<section class="kpis">
+  <div class="kpi"><label data-i18n="kpiNodes">Puntos Activos</label><div class="val" id="kpi-nodes">0</div></div>
+  <div class="kpi"><label data-i18n="kpiOps">Operadoras</label><div class="val">64</div></div>
+  <div class="kpi"><label data-i18n="kpiBpd">Prod. Ref (BPD)</label><div class="val" id="kpi-bpd">0</div></div>
+  <div class="kpi"><label data-i18n="kpiVip">Acceso VIP</label><div class="val" id="kpi-vip" style="font-size:12px;color:#d8b4fe;">🔒 Invitado</div></div>
+</section>
+
+<div class="search-bar">
+  <div class="search-wrap"><i class="fa-solid fa-magnifying-glass"></i><input type="text" id="searchInput" placeholder="Buscar campo, GNB, taladro, API/HSE, taller, cauchera 24h, parador, gasoil..." oninput="render()"/></div>
+  <select class="op-selector" id="operatorFilter" onchange="render()"><option value="ALL">🏭 Operadoras (+60)</option></select>
+  <div class="cat-filters">
+    <button class="cat-btn active" onclick="filterCat('TODAS',this)" data-i18n="catAll">Todos</button>
+    <button class="cat-btn hse-pill" onclick="filterCat('HSE',this)" data-i18n="catHse">🛡️ HSE / API / OSHA</button>
+    <button class="cat-btn" onclick="filterCat('taladro',this)" data-i18n="catRigs">Taladros Activos</button>
+    <button class="cat-btn" onclick="filterCat('ducto',this)" data-i18n="catPipe">Oleoductos/Gasoductos</button>
+    <button class="cat-btn" onclick="filterCat('talento',this)" data-i18n="catTalent">Personal/Equipos Cert.</button>
+    <button class="cat-btn" onclick="filterCat('taller',this)" data-i18n="catShop">Talleres Pesados</button>
+    <button class="cat-btn" onclick="filterCat('cauchera',this)" data-i18n="catTire">Caucheras 24h/12h</button>
+    <button class="cat-btn" onclick="filterCat('parador',this)" data-i18n="catFood">Restaurantes/Paradores</button>
+    <button class="cat-btn" onclick="filterCat('licitaciones',this)" data-i18n="catTenders">Licitaciones RUP/RNC</button>
+    <button class="cat-btn" onclick="filterCat('vialidad',this)" data-i18n="catRoads">Alertas Viales</button>
+    <button class="cat-btn" onclick="filterCat('petroleo',this)" data-i18n="catFields">Campos (38)</button>
+    <button class="cat-btn" onclick="filterCat('seguridad',this)" data-i18n="catSec">GNB/Policía (14)</button>
+    <button class="cat-btn" onclick="filterCat('oficinas',this)" data-i18n="catPdvsa">PDVSA (10)</button>
+    <button class="cat-btn" onclick="filterCat('internacional',this)" data-i18n="catIntl">Internacionales</button>
+    <button class="cat-btn" onclick="filterCat('nacional',this)" data-i18n="catNat">Contratistas Nac.</button>
+    <button class="cat-btn" onclick="filterCat('combustible',this)" data-i18n="catFuel">Gasoil/Gas (16)</button>
+    <button class="cat-btn" onclick="filterCat('salud',this)" data-i18n="catHealth">Salud/CDI</button>
+    <button class="cat-btn" onclick="filterCat('terminal',this)" data-i18n="catTerm">Terminales</button>
+    <button class="cat-btn" onclick="filterCat('comercio',this)" data-i18n="catSupp">Proveedores EPP</button>
+  </div>
+</div>
+
+<main class="main-grid">
+  <div id="map"></div>
+  <aside class="sidebar">
+    <div class="sponsor-box">
+      <div style="font-size:9.5px;color:var(--accent);font-weight:800;" data-i18n="promoBadge">PROCURA RFQ · ESTÁNDAR HSE/API · 1 MES GRATIS</div>
+      <h3 id="spTitle">Cotiza Compras Petroleras o Publica tu Negocio en Ruta Gratis</h3>
+      <p id="spDesc">Descarga reportes RFQ en Excel (.CSV), cotiza en USD/BCV/USDT o activa 30 días gratis para tu taller, cauchera o parador.</p>
+      <div style="margin-top:7px;display:flex;gap:6px;flex-wrap:wrap;">
+        <button class="rfq-btn" onclick="openRfqModal('lista')"><i class="fa-solid fa-boxes-packing"></i> <span data-i18n="btnOpenRfq">Ver Procura RFQ</span></button>
+        <button class="quote-btn" onclick="openPlanillasModal('comercio30')"><i class="fa-solid fa-gift"></i> <span data-i18n="btnFree30">1 Mes Gratis</span></button>
+        <button class="vip-btn" onclick="window.location.href='portal.html'"><i class="fa-solid fa-globe"></i> Portal Web</button>
+      </div>
+    </div>
+    <div id="nodesList" class="card-list"></div>
+  </aside>
+</main>
+
+<!-- Modal: Mesa de Procura Inteligente / RFQ + Exportación CSV -->
+<div class="modal-backdrop" id="rfqModal"><div class="modal">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap;">
+    <h2 style="margin:0;"><i class="fa-solid fa-boxes-packing" style="color:#fb923c"></i> Mesa de Procura Inteligente (RFQ)</h2>
+    <button class="calc-btn" style="padding:4px 8px;font-size:10.5px;" onclick="exportRfqCsv()"><i class="fa-solid fa-file-csv"></i> Exportar Excel (.CSV)</button>
+  </div>
+  <div class="tab-row">
+    <button class="tab-btn active" id="tabRfqLista" onclick="switchRfqTab('lista')">📋 Requerimientos Activos</button>
+    <button class="tab-btn" id="tabRfqComprar" onclick="switchRfqTab('comprar')">🛒 Solicitar Compra</button>
+    <button class="tab-btn" id="tabRfqOfertar" onclick="switchRfqTab('ofertar')">🏭 Enviar Oferta</button>
+  </div>
+
+  <div id="viewRfqLista">
+    <p style="font-size:11px;color:var(--muted);margin-bottom:8px;">Órdenes de procura abiertas en Faja del Orinoco y Occidente. Contacto corporativo: <b>Venepetrolintel3D@gmail.com</b></p>
+    <div id="rfqListContainer"></div>
+  </div>
+
+  <div id="viewRfqComprar" style="display:none;">
+    <div class="field-row">
+      <div class="field"><label>Empresa / Contratista Solicitante</label><input id="rBCompany" placeholder="Ej: Servicios Petroleros Oriente C.A."/></div>
+      <div class="field"><label>Persona de Contacto / WhatsApp</label><input id="rBPhone" placeholder="Ej: Ing. Luis Rojas - 0414-0000000"/></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Rubro de Procura</label><select id="rBCat"><option>Dotación EPP (Botas, Bragas, Cascos ANSI/COVENIN)</option><option>Tubería API, Válvulas, Bridas y Soldadura</option><option>Repuestos Maquinaria Pesada / Diésel</option><option>Alquiler Flotas 4x4 HSE / Cama Baja / Grúas</option><option>Alimentación / Viandas / Hidratación Campo</option></select></div>
+      <div class="field"><label>Lugar de Entrega / Campo</label><input id="rBZone" placeholder="Ej: El Tigre / Pariaguán / Morichal"/></div>
+    </div>
+    <div class="field"><label>Descripción Técnica y Cantidades Requeridas</label><textarea id="rBDesc" rows="2" placeholder="Ej: 250 pares botas petroleras caña alta puntera composite talla 38-45..."></textarea></div>
+    <div class="field"><label>Modalidad de Pago Estimada</label><select id="rBPay"><option>Divisas USD / USDT</option><option>Bolívares a Tasa Oficial BCV</option><option>Mixto (USD / Bs. BCV)</option></select></div>
+    <button class="rfq-btn" style="width:100%;justify-content:center;" onclick="sendRfqWA('comprar')"><i class="fa-brands fa-whatsapp"></i> Publicar Requerimiento de Compra</button>
+  </div>
+
+  <div id="viewRfqOfertar" style="display:none;">
+    <div class="field-row">
+      <div class="field"><label>Código RFQ al que Oferta</label><input id="rSCode" placeholder="Ej: RFQ-2026-041"/></div>
+      <div class="field"><label>Empresa Proveedora / RIF</label><input id="rSCompany" placeholder="Ej: Calzados Industriales C.A."/></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Precio Unitario / Total Oferta ($ USD)</label><input id="rSPrice" placeholder="Ej: $42.00 c/u (Entrega inmediata)"/></div>
+      <div class="field"><label>Tiempo de Entrega y Ubicación Stock</label><input id="rSTime" placeholder="Ej: 48 horas en El Tigre / Valencia"/></div>
+    </div>
+    <div class="field"><label>Certificaciones (API / ANSI / COVENIN / ISO)</label><textarea id="rSDesc" rows="2" placeholder="Ej: Suela dieléctrica antideslizante, certificación COVENIN/ANSI, factura fiscal..."></textarea></div>
+    <button class="quote-btn" style="width:100%;justify-content:center;" onclick="sendRfqWA('ofertar')"><i class="fa-brands fa-whatsapp"></i> Enviar Oferta Comercial</button>
+  </div>
+
+  <div style="display:flex;justify-content:flex-end;margin-top:9px;"><button onclick="closeModals()">Cerrar</button></div>
+</div></div>
+
+<!-- Modal: Planillas Técnicas y Registro 1 Mes Gratis -->
+<div class="modal-backdrop" id="planillasModal"><div class="modal">
+  <h2><i class="fa-solid fa-id-card-clip" style="color:var(--success)"></i> Planillas de Registro Oficial (VenePetrol Intel)</h2>
+  <div class="tab-row">
+    <button class="tab-btn active" id="tabTalento" onclick="switchPlanillaTab('talento')">👷 Personal Certificado</button>
+    <button class="tab-btn" id="tabEquipo" onclick="switchPlanillaTab('equipo')">🚜 Equipo Certificado</button>
+    <button class="tab-btn" id="tabComercio30" onclick="switchPlanillaTab('comercio30')">🎁 1 Mes Gratis Ruta</button>
+  </div>
+
+  <div id="formTalento">
+    <div class="field-row">
+      <div class="field"><label>Nombre Completo / Líder Cuadrilla</label><input id="pTName" placeholder="Ej: Carlos Méndez (Cuadrilla 4 Soldadores)"/></div>
+      <div class="field"><label>Cédula / Teléfono Contacto</label><input id="pTPhone" placeholder="Ej: 0414-0000000"/></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Especialidad Técnica</label><select id="pTSpec"><option>Soldador 6G Homologado (API 1104 / ASME IX)</option><option>Inspector HSE / SIHO-A / QA-QC</option><option>Perforador / Encuellador / Cuadrilla Workover</option><option>Operador de Grúa / Maquinaria Pesada</option><option>Instrumentista / Electricista Industrial</option><option>Chofer Gandola / Cama Baja (Lic. 5ta)</option></select></div>
+      <div class="field"><label>Zona / Bloque donde reside</label><input id="pTZone" placeholder="Ej: Pariaguán / El Tigre / Morichal"/></div>
+    </div>
+    <div class="field"><label>Certificaciones Vigentes (API / OSHA / WellSharp / SIHO-A)</label><input id="pTCert" placeholder="Ej: API 1104, ASME IX, Pase SIHO-A PDVSA, 8 años en Faja"/></div>
+    <div class="field"><label>¿Desea optar al Sello Verificado Pro?</label><select id="pTVer"><option>Sí, quiero Sello Verificado Pro</option><option>Registro Básico en Base de Datos</option></select></div>
+    <button class="quote-btn" style="width:100%;justify-content:center;" onclick="sendPlanillaWA('talento')"><i class="fa-brands fa-whatsapp"></i> Enviar Planilla de Personal Certificado</button>
+  </div>
+
+  <div id="formEquipo" style="display:none;">
+    <div class="field-row">
+      <div class="field"><label>Empresa o Propietario</label><input id="pEName" placeholder="Ej: Inversiones y Grúas Oriente C.A."/></div>
+      <div class="field"><label>Teléfono Directo</label><input id="pEPhone" placeholder="Ej: 0412-0000000"/></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Tipo de Equipo / Unidad</label><select id="pEType"><option>Grúa Telescópica / Brazo Hidráulico</option><option>Chuto con Cama Baja / Lowboy</option><option>Camión Vacuum / Cisterna Agua o Gasoil</option><option>Camioneta 4x4 Petrolera (HSE Barra/Pértiga)</option><option>Retroexcavadora / Payloader / Patrol</option><option>Planta Eléctrica / Compresor / Soldadora</option></select></div>
+      <div class="field"><label>Capacidad / Tonelaje / Cantidad</label><input id="pECap" placeholder="Ej: 2 Grúas de 50 Toneladas"/></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Certificaciones Vigentes (END / API / RACDA)</label><input id="pECert" placeholder="Ej: Certificación izamiento vigente 2026 + Póliza RCV"/></div>
+      <div class="field"><label>Ubicación Base</label><input id="pEZone" placeholder="Ej: Anaco / El Tigre / Ciudad Ojeda"/></div>
+    </div>
+    <button class="quote-btn" style="width:100%;justify-content:center;" onclick="sendPlanillaWA('equipo')"><i class="fa-brands fa-whatsapp"></i> Enviar Planilla de Equipo Certificado</button>
+  </div>
+
+  <div id="formComercio30" style="display:none;">
+    <div class="field-row">
+      <div class="field"><label>Nombre del Negocio</label><input id="pCName" placeholder="Ej: Cauchera y Electroauto El Cruce"/></div>
+      <div class="field"><label>Rubro en Ruta</label><select id="pCType"><option>Taller de Maquinaria Pesada / Diésel</option><option>Cauchera (Servicio Carga / Gandolas)</option><option>Restaurante / Parador Vial / Viandas</option><option>Venta de Repuestos / Ferretería / EPP</option></select></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Horario de Atención</label><select id="pCHours"><option>24 HORAS (Guardia Nocturna)</option><option>12 HORAS (Diurno 6:00 AM - 6:00 PM)</option><option>Horario Corrido / Previas Citas</option></select></div>
+      <div class="field"><label>WhatsApp del Negocio</label><input id="pCPhone" placeholder="Ej: 0424-0000000"/></div>
+    </div>
+    <div class="field"><label>Dirección Exacta / Carretera / Kilómetro</label><input id="pCZone" placeholder="Ej: Vía San Diego de Cabrutica - Zuata, Km 18"/></div>
+    <div class="field"><label>Servicios Principales que Ofrece</label><textarea id="pCDesc" rows="2" placeholder="Ej: Despinche cauchos 22.5/24.5, auxilio vial, estacionamiento gandolas y almuerzos..."></textarea></div>
+    <button class="quote-btn" style="width:100%;justify-content:center;" onclick="sendPlanillaWA('comercio30')"><i class="fa-brands fa-whatsapp"></i> Solicitar mi 1 Mes Gratis en el Mapa</button>
+  </div>
+
+  <div style="display:flex;justify-content:flex-end;margin-top:9px;"><button onclick="closeModals()">Cerrar</button></div>
+</div></div>
+
+<!-- Modal: Calculadora Procura BCV/USDT + PDF Ejecutivo + Conversor Unidades USA/Métrico -->
+<div class="modal-backdrop" id="calcModal"><div class="modal">
+  <h2><i class="fa-solid fa-calculator" style="color:var(--accent2)"></i> Calculadora Ejecutiva & Unidades Petroleras</h2>
+  <div class="tab-row">
+    <button class="tab-btn active" id="tabCalcBudget" onclick="switchCalcTab('budget')">💵 Cotizador BCV / USDT & PDF</button>
+    <button class="tab-btn" id="tabCalcUnits" onclick="switchCalcTab('units')">🛢️ Conversor BBL / PSI / ft (USA)</button>
+  </div>
+
+  <div id="viewCalcBudget">
+    <div style="display:flex;justify-content:space-between;align-items:center;background:#0e1420;padding:6px 9px;border-radius:6px;margin-bottom:8px;border:1px solid var(--border);">
+      <span id="rateStatus" style="font-size:10.5px;color:var(--success);">🔄 Consultando tasa BCV y USDT del día...</span>
+      <button style="padding:3px 7px;font-size:10px;" onclick="fetchLiveRates()"><i class="fa-solid fa-rotate"></i> Actualizar</button>
+    </div>
+    <div class="field"><label>Concepto del Presupuesto / Cotización</label><input id="cConcept" placeholder="Ej: 100 Kits Botas Caña Alta + Bragas Ignífugas"/></div>
+    <div class="field-row">
+      <div class="field"><label>Costo Base Unitario ($ USD)</label><input type="number" id="cUnitCost" value="45" oninput="runCalc()"/></div>
+      <div class="field"><label>Cantidad (Unidades / Días / Horas)</label><input type="number" id="cQty" value="10" oninput="runCalc()"/></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Gastos Admin + Utilidad (%)</label><input type="number" id="cMargin" value="25" oninput="runCalc()"/></div>
+      <div class="field"><label>Aplicar IVA (16%)</label><select id="cIva" onchange="runCalc()"><option value="16">Sí (+16% IVA)</option><option value="0">Exento / Sin IVA (0%)</option></select></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Tasa Oficial BCV (Bs / USD)</label><input type="number" step="0.01" id="cBcv" value="46.50" oninput="runCalc()"/></div>
+      <div class="field"><label>Tasa Referencia USDT (Bs / USDT)</label><input type="number" step="0.01" id="cUsdt" value="54.00" oninput="runCalc()"/></div>
+    </div>
+    <div class="calc-res" id="calcOutput"></div>
+    <div style="display:flex;gap:6px;justify-content:flex-end;margin-top:9px;flex-wrap:wrap;">
+      <button class="calc-btn" onclick="printExecutiveQuote()"><i class="fa-solid fa-print"></i> Imprimir / PDF Ejecutivo</button>
+      <button class="quote-btn" onclick="sendCalcWA()"><i class="fa-brands fa-whatsapp"></i> Enviar WhatsApp</button>
+    </div>
+  </div>
+
+  <div id="viewCalcUnits" style="display:none;">
+    <p style="font-size:11px;color:var(--muted);margin-bottom:8px;">Conversión rápida de estándares de ingeniería petrolera (US Oilfield Units ↔ Sistema Métrico).</p>
+    <div class="field-row">
+      <div class="field"><label>Barriles de Petróleo (BBL)</label><input type="number" id="uBbl" value="100" oninput="convOil('bbl')"/></div>
+      <div class="field"><label>Metros Cúbicos (m³) / Litros</label><input type="number" id="uM3" value="15.90" oninput="convOil('m3')"/></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Presión en PSI (lb/in²)</label><input type="number" id="uPsi" value="1500" oninput="convOil('psi')"/></div>
+      <div class="field"><label>Presión en Bar</label><input type="number" id="uBar" value="103.42" oninput="convOil('bar')"/></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Profundidad / Tubería en Pies (ft)</label><input type="number" id="uFt" value="1000" oninput="convOil('ft')"/></div>
+      <div class="field"><label>Longitud en Metros (m)</label><input type="number" id="uMt" value="304.80" oninput="convOil('mt')"/></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Galones US (GAL)</label><input type="number" id="uGal" value="42" oninput="convOil('gal')"/></div>
+      <div class="field"><label>Litros (L)</label><input type="number" id="uLit" value="158.99" oninput="convOil('lit')"/></div>
+    </div>
+  </div>
+
+  <div style="display:flex;justify-content:flex-end;margin-top:9px;"><button onclick="closeModals()">Cerrar</button></div>
+</div></div>
+
+<!-- Modal: Directorio VIP -->
+<div class="modal-backdrop" id="fichasModal"><div class="modal">
+  <h2><i class="fa-solid fa-file-contract" style="color:var(--vip)"></i> Directorio VIP (Empresas, Talento & Licitaciones)</h2>
+  <div id="vipUnlockBar" style="background:var(--panel2);border:1px solid var(--vip);border-radius:8px;padding:9px;margin-bottom:10px;">
+    <div style="font-size:11.5px;font-weight:700;color:#e9d5ff;margin-bottom:5px;">🔒 Ingresa tu clave VIP para desbloquear contactos directos, cuadrillas certificadas y pliegos:</div>
+    <div style="display:flex;gap:6px;">
+      <input type="text" id="vipCodeInput" placeholder="Clave VIP (Ej: VIP2026)" style="flex:1;background:var(--bg);border:1px solid var(--border);color:#fff;padding:6px;border-radius:6px;font-size:12px;"/>
+      <button class="vip-btn" onclick="unlockVIP()">Desbloquear</button>
+    </div>
+    <div style="margin-top:7px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:5px;">
+      <span style="font-size:10.5px;color:var(--muted);">Correo: <b>Venepetrolintel3D@gmail.com</b></span>
+      <button class="quote-btn" style="padding:4px 8px;font-size:11px;" onclick="window.open('https://wa.me/584121788766?text=Hola%20Jose%20Nery,%20quiero%20pagar%20mi%20suscripcion%20VIP%20en%20VenePetrol%20Intel','_blank')"><i class="fa-brands fa-whatsapp"></i> Pedir Clave WhatsApp</button>
+    </div>
+  </div>
+  <div id="fichasContainer"></div>
+  <div style="display:flex;justify-content:flex-end;margin-top:8px;"><button onclick="closeModals()">Cerrar</button></div>
+</div></div>
+
+<!-- Modal: OFAC -->
+<div class="modal-backdrop" id="ofacModal"><div class="modal">
+  <h2><i class="fa-solid fa-scale-balanced" style="color:var(--accent2)"></i> Monitor Licencias OFAC (Venezuela 2026)</h2>
+  <div class="ficha-item" style="border-left:3px solid #10b981"><strong style="color:#6ee7b7;font-size:12.5px;">✅ Licencia General 50A (Operaciones Directas Oil & Gas)</strong><p style="font-size:11px;margin-top:3px;">Autoriza operaciones petroleras y gasíferas a <b>Chevron, Repsol, Eni, Maurel & Prom, Shell y BP</b>.</p></div>
+  <div class="ficha-item" style="border-left:3px solid #38bdf8"><strong style="color:#7dd3fc;font-size:12.5px;">✅ Licencia General 48D (Bienes, Tecnología y Servicios)</strong><p style="font-size:11px;margin-top:3px;">Habilita suministro de equipos, repuestos y mantenimiento de pozos (<b>Halliburton, SLB, Baker Hughes, Weatherford</b>).</p></div>
+  <div class="ficha-item" style="border-left:3px solid #f59e0b"><strong style="color:#fbbf24;font-size:12.5px;">✅ Licencia General 46E (Comercialización y Exportación)</strong><p style="font-size:11px;margin-top:3px;">Regula compra, logística portuaria y exportación de crudo venezolano.</p></div>
+  <div class="ficha-item" style="border-left:3px solid #a855f7"><strong style="color:#d8b4fe;font-size:12.5px;">⚖️ Licencia General 49B (Contratos Contingentes)</strong><p style="font-size:11px;margin-top:3px;">Permite negociar contratos de nuevas inversiones sujetos a aprobación específica.</p></div>
+  <div class="ficha-item" style="border-left:3px solid #ef4444"><strong style="color:#fca5a5;font-size:12.5px;">⛔ Sin Licencia General OFAC</strong><p style="font-size:11px;margin-top:3px;">Empresas mixtas con participación rusa o china (<b>Petromonagas, Sinovensa</b>) permanecen excluidas.</p></div>
+  <div style="display:flex;justify-content:flex-end;margin-top:8px;"><button onclick="closeModals()">Cerrar</button></div>
+</div></div>
+
+<!-- Modal: Requisitos RUP / RNC -->
+<div class="modal-backdrop" id="rupModal"><div class="modal">
+  <h2><i class="fa-solid fa-clipboard-check" style="color:var(--success)"></i> Requisitos RUP / RAC y RNC para Contratar</h2>
+  <div class="ficha-item" style="border-left:3px solid #10b981"><strong style="color:#6ee7b7;font-size:12px;">1. Registro Nacional de Contratistas (RNC) Vigente</strong><p style="font-size:11px;margin-top:3px;">Certificado electrónico actualizado con Nivel Financiero Estimado de Contratación (NFEC).</p></div>
+  <div class="ficha-item" style="border-left:3px solid #38bdf8"><strong style="color:#7dd3fc;font-size:12px;">2. Registro Único de Proveedores (RUP / RAC PDVSA - Bariven)</strong><p style="font-size:11px;margin-top:3px;">Inscripción en el portal de procura petrolera con códigos UNSPSC e inspección técnica.</p></div>
+  <div class="ficha-item" style="border-left:3px solid #f59e0b"><strong style="color:#fbbf24;font-size:12px;">3. Solvencias Legales, Laborales y Tributarias</strong><p style="font-size:11px;margin-top:3px;">RIF, solvencia IVSS, INCES, BANAVIH (FAOV), solvencia laboral y declaración ISLR.</p></div>
+  <div class="ficha-item" style="border-left:3px solid #a855f7"><strong style="color:#d8b4fe;font-size:12px;">4. Certificaciones HSE / SIHO-A y Calidad en Campo</strong><p style="font-size:11px;margin-top:3px;">Aptitud en Seguridad Industrial (SIHO-A / OSHA / API) y certificación de equipos.</p></div>
+  <div style="display:flex;justify-content:flex-end;margin-top:8px;"><button onclick="closeModals()">Cerrar</button></div>
+</div></div>
+
+<!-- Modal: Planes VIP y Sello Verificado -->
+<div class="modal-backdrop" id="proModal"><div class="modal">
+  <h2><i class="fa-solid fa-crown"></i> Sello Verificado & Planes VIP B2B</h2>
+  <div class="kpi" style="border-color:var(--vip);margin-bottom:7px;"><label style="color:#d8b4fe;font-weight:700;">🔒 Membresía VIP Empresas & Procura ($35/mes)</label><p style="font-size:11px;margin-top:3px;">Desbloquea contactos directos de operadoras, personal/equipos certificados y licitaciones RUP/RNC.</p></div>
+  <div class="kpi" style="border-color:var(--success);margin-bottom:7px;"><label style="color:#6ee7b7;font-weight:700;">✅ Sello Verificado Pro en Mapa ($25/mes tras 1 Mes Gratis)</label><p style="font-size:11px;margin-top:3px;">Distingue tu taller pesado, cauchera 24h/12h, parador o equipo certificado con insignia verificada y enlace directo a tu WhatsApp.</p></div>
+  <div class="kpi" style="border-color:var(--accent);margin-bottom:9px;"><label style="color:var(--accent);font-weight:700;">🌟 Banner Destacado Superior ($90/mes)</label><p style="font-size:11px;margin-top:3px;">Máxima visibilidad en toda la plataforma. Correo: <b>Venepetrolintel3D@gmail.com</b></p></div>
+  <div style="display:flex;gap:8px;justify-content:flex-end;"><button onclick="closeModals()">Cerrar</button><button class="quote-btn" onclick="window.open('https://wa.me/584121788766?text=Hola%20Jose%20Nery,%20me%20interesa%20activar%20Sello%20Verificado%20o%20Plan%20VIP%20en%20VenePetrol%20Intel','_blank')"><i class="fa-brands fa-whatsapp"></i> WhatsApp (+58 412-1788766)</button></div>
+</div></div>
+
+<!-- Modal: Panel Admin -->
+<div class="modal-backdrop" id="adminModal"><div class="modal">
+  <h2><i class="fa-solid fa-lock"></i> Panel Administrador - VenePetrol</h2>
+  <div class="field-row"><div class="field"><label>Clave VIP Clientes</label><input id="inVipPass"/></div><div class="field"><label>Aviso Radar Urgente (Franja Superior)</label><input id="inRadarText"/></div></div>
+  <div class="field-row"><div class="field"><label>Banner Título</label><input id="inSpTitle"/></div><div class="field"><label>Banner Descripción</label><input id="inSpDesc"/></div></div>
+  <hr style="border-color:var(--border);margin:8px 0;"/>
+  <div class="field"><label>Publicar Nuevo Requerimiento en Mesa Procura RFQ (Opcional)</label><input id="inNewRfq" placeholder="Ej: RFQ-2026-045 | 400 Bragas Ignífugas | El Tigre | USD/USDT"/></div>
+  <hr style="border-color:var(--border);margin:8px 0;"/>
+  <div class="field"><label>Punto en Mapa a Editar / Crear</label><select id="selNode" onchange="loadNodeData(this.value)"></select></div>
+  <div class="field-row"><div class="field"><label>Nombre / Título</label><input id="inNodeName"/></div><div class="field"><label>Operadora / Horario (24h/12h)</label><input id="inNodeOp"/></div></div>
+  <div class="field-row">
+    <div class="field"><label>Categoría</label><select id="inNodeCategory"><option value="petroleo">Campo Petrolero</option><option value="seguridad">Comando GNB / Policía</option><option value="taladro">Taladro Activo (Perforación / Workover)</option><option value="combustible">Estación Gasoil / Gasolina</option><option value="ducto">Corredor Oleoducto / Gasoducto</option><option value="talento">Personal / Equipo Certificado (VIP)</option><option value="taller">Taller Maquinaria Pesada</option><option value="cauchera">Cauchera (24h / 12h)</option><option value="parador">Restaurante / Parador Vial</option><option value="licitaciones">Licitación RUP-RNC (VIP)</option><option value="vialidad">Alerta Vial / Peaje</option><option value="oficinas">Oficina PDVSA</option><option value="internacional">Internacional / Mixta (VIP)</option><option value="nacional">Contratista Nacional (VIP)</option><option value="salud">Hospital / CDI</option><option value="terminal">Terminal Terrestre</option><option value="comercio">Proveedor B2B / EPP</option></select></div>
+    <div class="field"><label>Estado / Zona / Carretera</label><input id="inNodeBasin"/></div>
+  </div>
+  <div class="field-row"><div class="field"><label>Latitud</label><input type="number" step="0.01" id="inNodeLat"/></div><div class="field"><label>Longitud</label><input type="number" step="0.01" id="inNodeLng"/></div></div>
+  <div class="field-row">
+    <div class="field"><label>Estatus Membresía / Sello</label><select id="inNodeBadge"><option value="verified">✅ VERIFICADO PRO</option><option value="free30">🎁 CORTESÍA 30 DÍAS (1 Mes Gratis)</option><option value="none">Estándar / Sin Etiqueta</option></select></div>
+    <div class="field"><label>Estándar HSE / API / Horario</label><input id="inNodeOfac" placeholder="Ej: HSE / API Certified o 24 HORAS"/></div>
+  </div>
+  <div class="field-row"><div class="field"><label>Trabajadores / Capacidad</label><input id="inNodeWorkers"/></div><div class="field"><label>Señal Móvil</label><input id="inNodeSignal"/></div></div>
+  <div class="field"><label>Ficha Técnica / Dirección / Servicios</label><textarea id="inNodeEpp" rows="2"></textarea></div>
+  <div style="display:flex;gap:8px;justify-content:space-between;margin-top:8px;">
+    <button onclick="deleteNode()" id="btnDelete" style="border-color:var(--danger);color:var(--danger);display:none;">Eliminar</button>
+    <div style="display:flex;gap:8px;margin-left:auto;"><button onclick="closeModals()">Cerrar</button><button class="primary" onclick="saveAdmin()">Guardar</button></div>
+  </div>
+</div></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const WA="584121788766";
+const CORP_EMAIL="Venepetrolintel3D@gmail.com";
+let vipPass=localStorage.getItem('vp_vip_pass')||"VIP2026";
+let isVIP=localStorage.getItem('vp_is_vip')==='true';
+let curCat='TODAS';
+let curLang=localStorage.getItem('vp_lang')||'es';
+
+const i18n={
+  es:{
+    secTools:"Herramientas Ejecutivas & VIP",btnLangMenu:"Cambiar a Inglés (EN)",secLayers:"Capas Operativas del Mapa",
+    btnRfq:"Procura RFQ",btnForms:"Planillas",radarTag:"🚨 RADAR HOY",btnApply:"Postular / Cotizar",
+    kpiNodes:"Puntos Activos",kpiOps:"Operadoras",kpiBpd:"Prod. Ref (BPD)",kpiVip:"Acceso VIP",
+    catAll:"Todos",catHse:"🛡️ HSE / API / OSHA",catRigs:"Taladros Activos",catPipe:"Oleoductos/Gasoductos",catTalent:"Personal/Equipos Cert.",catShop:"Talleres Pesados",
+    catTire:"Caucheras 24h/12h",catFood:"Restaurantes/Paradores",catTenders:"Licitaciones RUP/RNC",
+    catRoads:"Alertas Viales",catFields:"Campos (38)",catSec:"GNB/Policía (14)",catPdvsa:"PDVSA (10)",catIntl:"Internacionales",
+    catNat:"Contratistas Nac.",catFuel:"Gasoil/Gas (16)",catHealth:"Salud/CDI",
+    catTerm:"Terminales",catSupp:"Proveedores EPP",
+    promoBadge:"PROCURA RFQ · ESTÁNDAR HSE/API · 1 MES GRATIS",btnOpenRfq:"Ver Procura RFQ",btnFree30:"1 Mes Gratis",
+    searchPh:"Buscar campo, GNB, taladro, API/HSE, taller, cauchera 24h, parador, gasoil..."
+  },
+  en:{
+    secTools:"Executive Tools & VIP",btnLangMenu:"Switch to Spanish (ES)",secLayers:"Map Operational Layers",
+    btnRfq:"Procura RFQ",btnForms:"Forms",radarTag:"🚨 RADAR TODAY",btnApply:"Apply / Quote",
+    kpiNodes:"Active Nodes",kpiOps:"Operators",kpiBpd:"Ref. Prod (BPD)",kpiVip:"VIP Access",
+    catAll:"All",catHse:"🛡️ HSE / API / OSHA",catRigs:"Active Rigs",catPipe:"Pipelines / Gas",catTalent:"Certified Staff/Equip.",catShop:"Heavy Workshops",
+    catTire:"Tire Shops 24h/12h",catFood:"Diners / Rest Stops",catTenders:"RUP/RNC Tenders",
+    catRoads:"Road Alerts",catFields:"Oil Fields (38)",catSec:"GNB / Police (14)",catPdvsa:"PDVSA Offices (10)",catIntl:"International JVs",
+    catNat:"Nat. Contractors",catFuel:"Diesel / Fuel (16)",catHealth:"Hospitals / CDI",
+    catTerm:"Bus Terminals",catSupp:"PPE Suppliers",
+    promoBadge:"RFQ PROCUREMENT · HSE/API STANDARD · 1 MONTH FREE",btnOpenRfq:"Open RFQ Desk",btnFree30:"1 Month Free",
+    searchPh:"Search oil field, GNB, active rig, API/HSE, workshop, 24h tire shop, diner, fuel..."
+  }
+};
+
+function applyLang(){
+  const t=i18n[curLang];
+  document.getElementById('langBtn').innerHTML=`<i class="fa-solid fa-globe"></i> ${curLang==='es'?'EN':'ES'}`;
+  document.getElementById('searchInput').placeholder=t.searchPh;
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const k=el.getAttribute('data-i18n');
+    if(t[k]) el.textContent=t[k];
+  });
+  updateVIPBadge();
+}
+
+function toggleLang(){
+  curLang=(curLang==='es'?'en':'es');
+  localStorage.setItem('vp_lang',curLang);
+  applyLang();
+  render();
+}
+
+const defaultRfqs=[
+  {code:"RFQ-2026-041",title:"500 Pares Botas Petroleras Caña Alta Puntera Composite + 300 Bragas Ignífugas",zone:"El Tigre / San Tomé (Anzoátegui)",pay:"USD / USDT",deadline:"Cierre: Viernes 5:00 PM",detail:"Certificación COVENIN / ANSI Z41, suela resistente a hidrocarburos y entrega parcial inmediata."},
+  {code:"RFQ-2026-042",title:"Alquiler 3 Camionetas 4x4 Doble Cabina con Equipamiento Petrolero HSE (Barra/Pértiga/GPS)",zone:"Pariaguán – Zuata (Bloque Junín)",pay:"USD / Bs. BCV",deadline:"Cierre: Activo",detail:"Contrato por 6 meses con opción a prórroga, póliza RCV y pase SIHO-A / HSE al día."},
+  {code:"RFQ-2026-043",title:"Suministro 120 Desayunos y Almuerzos Empacados Diarios para Cuadrilla de Taladro",zone:"Corredor San Diego de Cabrutica – Zuata",pay:"USD / Pago Móvil BCV",deadline:"Inicio Inmediato",detail:"Entrega puntual en campamento/macolla 6:30 AM y 12:00 M con menú balanceado e hidratación."},
+  {code:"RFQ-2026-044",title:"Mangueras Hidráulicas Alta Presión API, Filtros Caterpillar/Cummins y Electrodos 6010/7018",zone:"Morichal / Maturín (Monagas)",pay:"Divisas USD",deadline:"Cierre: Esta semana",detail:"Repuestos para mantenimiento de maquinaria amarilla y unidades workover en Bloque Carabobo."}
+];
+let rfqList=JSON.parse(localStorage.getItem('vp_rfq_list_v1'))||defaultRfqs;
+
+const ops64=["PDVSA Petróleo S.A.","Chevron (EE. UU.)","Repsol (España)","Eni (Italia)","Maurel & Prom (Francia)","CNPC / Sinovensa (China)","Roszarubezhneft (Rusia)","ONGC Videsh (India)","Shell (Reino Unido/PB)","BP (Reino Unido)","Halliburton","SLB (Schlumberger)","Baker Hughes","Weatherford","Petropiar (PDVSA - Chevron)","Petroboscán (PDVSA - Chevron)","Petroindependencia (PDVSA - Chevron)","Petroindependiente (PDVSA - Chevron)","Petroquiriquire (PDVSA - Repsol)","Cardón IV (Repsol - Eni)","Barúa-Motatán (PDVSA - Repsol)","PetroSucre (PDVSA - Eni)","Junín 5 (PDVSA - Eni)","Petroregional del Lago (Maurel & Prom)","Sinovensa (PDVSA - CNPC)","Petrozumano (CNPC)","Petrourica (CNPC)","Petromonagas (Roszarubezhneft)","Petroperijá (Roszarubezhneft)","Boquerón (Roszarubezhneft)","Petromiranda (Roszarubezhneft)","Petrovictoria (Roszarubezhneft)","PetroSanCristóbal (ONGC)","Indovenezolana (ONGC)","Petrocedeño (PDVSA)","Petromacareo (Petrovietnam)","Petrodelta (PDVSA)","Petrowarao (PDVSA)","Petrocuragua (PDVSA)","Petrokariña (PDVSA)","Petrocabimas (PDVSA)","Petrozamora (PDVSA)","Petroguárico (PDVSA)","Petroanzoátegui (PDVSA)","Petrosanfélix (PDVSA)","Petrojunín (PDVSA)","Petrocarabobo (PDVSA)","Petroven-Bras","Petroritupano","Petrowayu","Petrocumarebo","Lagopetrol","Bielovenezolana","INELECTRA","VEPICA","TECNOCONSULT","Otepi","Grupo Conkor","Suelopetrol","Ehcopek","Petrex Oriente","Z&P Construction","Tiven Logística","Bariven S.A."];
+const opSel=document.getElementById('operatorFilter');
+ops64.forEach(o=>{let opt=document.createElement('option');opt.value=o;opt.textContent=o;opSel.appendChild(opt);});
+
+const pipelines=[
+  {name:"Corredor Oleoducto Faja (Zuata – San Tomé) → Complejo José / Ref. Puerto La Cruz",color:"#f59e0b",coords:[[8.35,-64.72],[8.85,-64.70],[8.94,-64.14],[9.43,-64.46],[10.08,-64.84],[10.22,-64.63]]},
+  {name:"Corredor Oleoducto Carabobo (Morichal / Cerro Negro) → Terminal José",color:"#fb923c",coords:[[8.52,-63.35],[8.94,-64.14],[9.43,-64.46],[10.08,-64.84]]},
+  {name:"Sistema Gasífero Oriente (El Furrial / Punta de Mata – Anaco – José)",color:"#38bdf8",coords:[[9.70,-63.45],[9.68,-63.52],[9.43,-64.46],[10.08,-64.84]]},
+  {name:"Corredor Troncal Llanos (Bloque Boyacá / Guárico → Refinería El Palito)",color:"#f59e0b",coords:[[8.40,-66.15],[9.21,-66.01],[9.91,-67.35],[10.48,-68.12]]},
+  {name:"Sistema Oleoducto Occidente (Ulé / Cabimas → CRP Amuay – Cardón)",color:"#f59e0b",coords:[[10.38,-71.44],[10.66,-71.61],[11.63,-70.21]]}
+];
+
+const defaultNodes=[
+  // TALADROS ACTIVOS (FRENTES OPERATIVOS REFERENCIALES)
+  {id:951,name:"Frente Taladros Petropiar (Huyapari / San Tomé)",category:"taladro",badge:"verified",hse:true,operator:"Petropiar (PDVSA - Chevron)",ofac:"Perforación Rotatoria · HSE/API",basin:"Anzoátegui · Bloque Ayacucho (Frente Referencial)",lat:8.68,lng:-64.22,bpd:0,workers:"~50 trabajadores por rotación / guardia",epp:"Actividad continua de perforación direccional y rehabilitación de pozos pesados bajo estándar HSE/API. Demanda diaria de gasoil, botas caña alta, grúas, vacuum y viandas."},
+  {id:952,name:"Frente Taladros Petroindependencia (Carabobo / Temblador)",category:"taladro",badge:"verified",hse:true,operator:"Petroindependencia (Chevron)",ofac:"Perforación Rotatoria · HSE/API",basin:"Monagas Sur · Bloque Carabobo (Frente Referencial)",lat:8.92,lng:-62.68,bpd:0,workers:"~55 trabajadores por guardia",epp:"Campaña activa de completación y perforación en macollas. Alta demanda de transporte 4x4 HSE, mangueras hidráulicas API, soldadura 6G y EPP."},
+  {id:953,name:"Frente Workover Bloque Junín (Zuata – Cabrutica)",category:"taladro",hse:true,operator:"PetroSanCristóbal / Petrocedeño",ofac:"Reacondicionamiento (Workover 550-750 HP)",basin:"Anzoátegui Sur · Bloque Junín (Frente Referencial)",lat:8.38,lng:-64.70,bpd:0,workers:"~40 trabajadores por guardia",epp:"Equipos de rehabilitación de pozos, cambio de bombas PCP/BES y limpieza. Demanda caucheras 24h en ruta, mecánica diésel y alimentación en campo."},
+  {id:954,name:"Frente Taladros Norte de Monagas (El Furrial / Santa Bárbara)",category:"taladro",hse:true,operator:"PDVSA Producción Oriente / Halliburton / SLB",ofac:"Perforación Profunda & Workover",basin:"Monagas · Cuenca Oriental (Frente Referencial)",lat:9.68,lng:-63.48,bpd:0,workers:"~60 trabajadores por guardia",epp:"Operaciones de alta presión, cementación y mantenimiento de pozos profundos. Demanda ropa antiestática, botas dieléctricas e inspección END."},
+  {id:955,name:"Frente Taladros Petroboscán (Campo Boscán)",category:"taladro",badge:"verified",hse:true,operator:"Petroboscán (PDVSA - Chevron)",ofac:"Perforación Rotatoria · HSE/API",basin:"Zulia · Cuenca Maracaibo (Frente Referencial)",lat:10.42,lng:-71.92,bpd:0,workers:"~50 trabajadores por guardia",epp:"Reactivación de pozos de crudo pesado en Boscán bajo estándar HSE. Demanda permanente de cuadrillas de tubería, cisternas, EPP y repuestos diésel."},
+  {id:956,name:"Frente Workover Costa Oriental (Tía Juana – Lagunillas – Bachaquero)",category:"taladro",hse:true,operator:"PDVSA Occidente / Contratistas COL",ofac:"Workover Tierra y Gabarras Lacustres",basin:"Zulia · Costa Oriental del Lago (Frente Referencial)",lat:10.15,lng:-71.28,bpd:0,workers:"~45 trabajadores por equipo",epp:"Rehabilitación de pozos en tierra y lago. Demanda chalecos SOLAS, botas antideslizantes, grúas y talleres navales/diésel."},
+
+  // CORREDORES REFERENCIALES DE OLEODUCTOS Y GASODUCTOS
+  {id:991,name:"Corredor Oleoducto Zuata – San Tomé – Complejo José / Puerto La Cruz",category:"ducto",operator:"PDVSA / Empresas Mixtas Oriente",ofac:"Trazado Referencial Público",basin:"Anzoátegui · Eje Sur-Norte Faja",lat:9.43,lng:-64.46,bpd:0,epp:"Ruta referencial de transporte de crudo diluido (DCO) y diluyente desde bloques Junín y Ayacucho hacia mejoradores de José y Refinería Puerto La Cruz."},
+  {id:992,name:"Corredor Oleoducto Morichal / Cerro Negro → Mejoradores José",category:"ducto",operator:"PDVSA / Petromonagas / Sinovensa",ofac:"Trazado Referencial Público",basin:"Monagas – Anzoátegui · Bloque Carabobo",lat:8.75,lng:-63.75,bpd:0,epp:"Troncal referencial de crudo extrapesado desde Morichal hacia patios de tanques y mejoradores en el norte de Anzoátegui."},
+  {id:993,name:"Gasoducto Troncal Norte de Monagas – Anaco – José",category:"ducto",operator:"PDVSA Gas",ofac:"Trazado Referencial Público",basin:"Monagas – Anzoátegui",lat:9.60,lng:-63.95,bpd:0,epp:"Red referencial de gas natural de alta presión desde El Furrial y Santa Bárbara hacia centros de distribución en Anaco y Complejo José."},
+  {id:994,name:"Corredor Oleoducto Guárico (Boyacá) → Refinería El Palito",category:"ducto",operator:"PDVSA / Petroguárico",ofac:"Trazado Referencial Público",basin:"Guárico – Carabobo",lat:9.55,lng:-66.85,bpd:0,epp:"Sistema referencial de enlace centro-llanero hacia la Refinería El Palito en Puerto Cabello."},
+  {id:995,name:"Sistema Oleoducto Costa Oriental (Ulé) → CRP Paraguaná",category:"ducto",operator:"PDVSA Occidente / Refinación",ofac:"Trazado Referencial Público",basin:"Zulia – Falcón",lat:11.05,lng:-70.85,bpd:0,epp:"Corredor referencial de suministro de crudo desde patios de tanques del Lago de Maracaibo hacia el Centro de Refinación Paraguaná."},
+
+  // TALLERES DE MAQUINARIA PESADA (1 MES GRATIS CORTESÍA)
+  {id:961,name:"Taller Diésel & Hidráulica El Tigre Pesado",category:"taller",badge:"free30",ofac:"Auxilio Vial en Campo",basin:"Anzoátegui · Av. Intercomunal El Tigre",lat:8.90,lng:-64.23,bpd:0,epp:"Reparación motores Caterpillar, Cummins, Mack y Detroit. Prensado de mangueras hidráulicas de alta presión y soldadura en taladro. (Cortesía 30 días)."},
+  {id:962,name:"Electroauto & Mecánica Pesada Pariaguán",category:"taller",badge:"free30",ofac:"Horario 12h / Auxilio Ruta",basin:"Anzoátegui · Salida Vía Zuata",lat:8.84,lng:-64.71,bpd:0,epp:"Atención a chutos, cama baja, vacuum y flotas 4x4 que entran al Bloque Junín y San Diego de Cabrutica. (Cortesía 30 días)."},
+  {id:963,name:"Taller Maquinaria Amarilla & Taladros Morichal",category:"taller",badge:"free30",ofac:"Servicio en Macollas",basin:"Monagas Sur · Vía Cerro Negro",lat:8.55,lng:-63.39,bpd:0,epp:"Mantenimiento preventivo/correctivo de retroexcavadoras, payloaders, bombas y plantas eléctricas. (Cortesía 30 días)."},
+
+  // CAUCHERAS 24 HORAS Y 12 HORAS (1 MES GRATIS CORTESÍA)
+  {id:971,name:"Cauchera Industrial 24 Horas El Cruce (El Tigre)",category:"cauchera",badge:"free30",ofac:"24 HORAS",basin:"Anzoátegui · Carretera Negra El Tigre",lat:8.88,lng:-64.25,bpd:0,epp:"Guardia nocturna 24 HORAS. Montaje, vulcanizado y despinche de cauchos de carga (22.5 / 24.5), maquinaria pesada y flotas 4x4. (Cortesía 30 días)."},
+  {id:972,name:"Cauchera & Servicios Ruta Pariaguán – Zuata",category:"cauchera",badge:"free30",ofac:"12 HORAS (6am - 6pm)",basin:"Anzoátegui · Entrada Corredor Zuata",lat:8.83,lng:-64.72,bpd:0,epp:"Atención 12 HORAS para gandolas, cisternas y camionetas en ruta hacia San Diego de Cabrutica. Auxilio en vía cercano. (Cortesía 30 días)."},
+  {id:973,name:"Cauchera 24 Horas Troncal Temblador – Morichal",category:"cauchera",badge:"free30",ofac:"24 HORAS",basin:"Monagas Sur · Troncal 10",lat:9.00,lng:-62.64,bpd:0,epp:"Servicio continuo 24 HORAS para transporte pesado de Bloque Carabobo y ruta hacia Tucupita. (Cortesía 30 días)."},
+
+  // RESTAURANTES & PARADORES VIALES
+  {id:981,name:"Parador Vial & Comedor Cuadrillas Corredor Zuata",category:"parador",badge:"verified",ofac:"Desayunos · Almuerzos · Estac. Gandolas",basin:"Anzoátegui · Ruta San Diego de Cabrutica – Zuata",lat:8.48,lng:-64.72,bpd:0,epp:"Parador estratégico en el corredor Cabrutica – Zuata: desayunos criollos, almuerzos ejecutivos/obreros, despacho de viandas a taladros y patio seguro para gandolas y autobuses."},
+  {id:982,name:"Restaurante & Parador El Caney de San Tomé",category:"parador",badge:"free30",ofac:"Comida y Viandas en Campo",basin:"Anzoátegui · Vía San Tomé / El Tigre",lat:8.94,lng:-64.15,bpd:0,epp:"Almuerzos, sopas, parrillas y despacho de comida empacada para cuadrillas petroleras y transportistas. (Cortesía 30 días)."},
+  {id:983,name:"Parador Llanero Chaguaramas – Valle de la Pascua",category:"parador",badge:"free30",ofac:"Estacionamiento Carga Pesada",basin:"Guárico · Troncal 13 Bloque Boyacá",lat:9.22,lng:-66.02,bpd:0,epp:"Parada obligatoria para flotas entre el centro del país y la Faja del Orinoco. Comida 12h y descanso. (Cortesía 30 días)."},
+
+  // PERSONAL CALIFICADO, PERSONAL CERTIFICADO Y EQUIPOS CERTIFICADOS (VIP 🔒)
+  {id:901,name:"Cuadrilla Soldadores 6G Homologados & Tuberos (API 1104)",category:"talento",badge:"verified",hse:true,operator:"Personal Certificado",ofac:"Certificación API 1104 / ASME IX",basin:"El Tigre · Pariaguán · San Tomé",lat:8.88,lng:-64.25,bpd:0,workers:"12 Técnicos Certificados Disponibles",vip:true,epp:"Personal certificado en soldadura de oleoductos, cabezales y tanques con pase HSE/SIHO-A y pruebas médicas vigentes. Contacto directo vía Central VIP."},
+  {id:902,name:"Inspectores HSE / SIHO-A, QA/QC & Supervisores de Taladro",category:"talento",badge:"verified",hse:true,operator:"Personal Calificado",ofac:"Certificación OSHA / INPSASEL / PDVSA",basin:"Morichal · Maturín · Anaco",lat:8.56,lng:-63.42,bpd:0,workers:"8 Especialistas Certificados",vip:true,epp:"Ingenieros y TSU certificados en Seguridad Industrial (HSE / SIHO-A), control de calidad END y supervisión de rehabilitación de pozos."},
+  {id:903,name:"Perforadores, Encuelladores y Cuadrilla Workover",category:"talento",badge:"verified",hse:true,operator:"Personal Certificado",ofac:"Control de Pozos WellSharp / IADC",basin:"Zuata · San Diego de Cabrutica · Zulia",lat:8.39,lng:-64.73,bpd:0,workers:"18 Operadores de Taladro",vip:true,epp:"Cuadrilla completa con certificación internacional WellSharp de control de pozos, trabajo en altura y manejo de llaves hidráulicas lista para guardia."},
+  {id:904,name:"Flota Grúas Telescópicas 35T - 80T & Cama Baja",category:"talento",badge:"verified",hse:true,operator:"Equipo Certificado",ofac:"Certificación Izamiento / API / END",basin:"El Tigre · Anaco · Morichal",lat:8.91,lng:-64.22,bpd:0,workers:"6 Unidades Certificadas Operativas",vip:true,epp:"Grúas y chutos con lowboy/cama baja con certificación de gancho, cables, póliza RCV y operadores certificados para movilización en macollas."},
+  {id:905,name:"Camiones Vacuum 120 BBL, Cisternas & 4x4 Petroleras HSE",category:"talento",badge:"verified",hse:true,operator:"Equipo Certificado",ofac:"Permiso RACDA / Barra Antivuelco HSE",basin:"Pariaguán · San Tomé · Ciudad Ojeda",lat:8.85,lng:-64.69,bpd:0,workers:"10 Unidades Disponibles",vip:true,epp:"Camiones vacuum certificados para achique y fluidos, cisternas de gasoil/agua y camionetas 4x4 con arrestallamas, pértiga y GPS."},
+
+  // MONITOR DE LICITACIONES & REQUISITOS RUP / RNC (VIP 🔒)
+  {id:921,name:"Licitación Abierta: Mantenimiento Vial y Macollas Junín",category:"licitaciones",operator:"PDVSA / Empresas Mixtas Junín",ofac:"Requisito: RNC + RUP/RAC Vigente",basin:"Anzoátegui · Bloque Junín",lat:8.52,lng:-64.71,bpd:0,workers:"Cierre de Ofertas: Activo",vip:true,epp:"Requerimiento de maquinaria amarilla, relleno compactado y saneamiento ambiental en macollas. Exige RNC nivel financiero III+ y solvencia laboral."},
+  {id:922,name:"Procura Urgente: Dotación EPP Ignífugo y Botas (1.500 Kits)",category:"licitaciones",hse:true,operator:"Contratistas Faja Carabobo / Ayacucho",ofac:"Requisito: RUP Bariven / ANSI-COVENIN",basin:"San Tomé · El Tigre · Morichal",lat:8.93,lng:-64.14,bpd:0,workers:"Compra Directa / Consorcio",vip:true,epp:"Solicitud de botas caña alta puntera composite, bragas ignífugas y cascos dieléctricos con certificación ANSI/COVENIN. Contacto de procura en VIP."},
+  {id:923,name:"Ronda de Servicio: Alquiler Flotas 4x4 HSE y Transporte Personal",category:"licitaciones",hse:true,operator:"Operadoras Internacionales / Mixtas",ofac:"Requisito: RNC + Pólizas + HSE",basin:"Anaco · El Tigre · Maturín · Maracaibo",lat:9.43,lng:-64.45,bpd:0,workers:"Contratos 6 a 12 Meses",vip:true,epp:"Contratación de camionetas doble cabina 4x4 y autobuses encava para rotación de guardias con equipamiento petrolero HSE completo."},
+
+  // ALERTAS VIALES, PEAJES Y RESTRICCIONES DE CARGA PESADA
+  {id:941,name:"Alerta Vial: Corredor Pariaguán – Zuata – Cabrutica",category:"vialidad",operator:"Eje Logístico Bloque Junín",ofac:"Tránsito Pesado · Precaución",basin:"Anzoátegui Sur · Faja Orinoco",lat:8.62,lng:-64.72,bpd:0,epp:"Estado: Tramo con baches profundos entre km 28 y km 55; tránsito lento de gandolas y cama baja. Alcabala GNB con revisión de guías de carga."},
+  {id:942,name:"Alerta Vial: Carretera Negra Anaco – El Tigre – San Tomé",category:"vialidad",operator:"Troncal 16 Oriente",ofac:"Peaje Activo · Fluido",basin:"Anzoátegui · Faja Orinoco",lat:9.18,lng:-64.32,bpd:0,epp:"Estado: Vía operativa con peaje activo para carga pesada. Precaución en cruces de macollas y salida de equipos de taladro."},
+  {id:943,name:"Alerta Vial: Troncal Maturín – Morichal – Temblador – Tucupita",category:"vialidad",operator:"Troncal 10 Sur Oriente",ofac:"Peaje Activo · Control Carga",basin:"Monagas / Delta Amacuro",lat:9.12,lng:-62.95,bpd:0,epp:"Estado: Circulación normal con puntos de control de peso y guías en Temblador y acceso a Cerro Negro / Sinovensa."},
+  {id:944,name:"Alerta Vial: Eje Chaguaramas – Valle de la Pascua – El Socorro",category:"vialidad",operator:"Troncal 13 Llanos / Boyacá",ofac:"Operativa · Precaución Nocturna",basin:"Guárico · Bloque Boyacá",lat:9.26,lng:-66.12,bpd:0,epp:"Estado: Corredor de enlace hacia Bloque Boyacá (Machete). Se recomienda tránsito diurno para unidades de carga sobredimensionada."},
+
+  // 38 CAMPOS PETROLEROS (28 ORIGINALES + 10 NUEVOS ESTRATÉGICOS)
+  {id:1,name:"Cerro Negro (Morichal)",category:"petroleo",operator:"Petromonagas (Roszarubezhneft)",ofac:"Sin Licencia OFAC",basin:"Monagas · Faja Orinoco",lat:8.52,lng:-63.35,bpd:115000,signal:"Movilnet 4G · Digitel 4G/3G · Movistar baja",epp:"EPP: Bragas ignífugas, botas composite. Bloque Carabobo."},
+  {id:2,name:"Zuata / San Diego de Cabrutica",category:"petroleo",operator:"PetroSanCristóbal (ONGC)",ofac:"Evaluación GL 49B",basin:"Anzoátegui · Faja Orinoco",lat:8.35,lng:-64.72,bpd:130000,signal:"Movilnet 4G/Voz · Digitel 3G intermitente · Movistar solo Pariaguán",epp:"EPP: Botas caña alta petroleras, lentes UV. Alto tráfico cuadrillas Bloque Junín."},
+  {id:3,name:"Carabobo (Temblador / Uracoa)",category:"petroleo",hse:true,operator:"Petroindependencia (Chevron)",ofac:"GL 50A Activa (Chevron)",basin:"Monagas / Delta · Faja",lat:8.95,lng:-62.65,bpd:95000,signal:"Movilnet 4G · Digitel 3G en Temblador",epp:"EPP: Cascos ANSI, guantes carnaza, botas impermeables."},
+  {id:4,name:"Ayacucho (Pariaguán / San Tomé)",category:"petroleo",hse:true,operator:"Petropiar (Chevron)",ofac:"GL 50A Activa (Chevron)",basin:"Anzoátegui · Faja Orinoco",lat:8.85,lng:-64.70,bpd:85000,signal:"Digitel 4G · Movilnet 4G · Movistar 4G urbano",epp:"EPP: Jeans 14oz, camisas manga larga, botas puntera acero."},
+  {id:5,name:"Boyacá (Machete / Chaguaramas)",category:"petroleo",operator:"Petroguárico (PDVSA)",ofac:"GL 48D Servicios",basin:"Guárico · Faja Orinoco",lat:8.40,lng:-66.15,bpd:35000,signal:"Movilnet en campamentos · Digitel en Chaguaramas",epp:"EPP: Botas dieléctricas, protección respiratoria."},
+  {id:6,name:"Complejo Criogénico José",category:"petroleo",hse:true,operator:"Petropiar (Chevron)",ofac:"GL 50A / GL 46E Exportación",basin:"Anzoátegui Norte · Faja",lat:10.08,lng:-64.84,bpd:210000,signal:"Digitel, Movistar y Movilnet 4G LTE completo",epp:"EPP: Equipos H2S, bragas Nomex, botas dieléctricas."},
+  {id:7,name:"Petrocedeño (Zuata Sur)",category:"petroleo",operator:"Petrocedeño (PDVSA)",ofac:"GL 48D / GL 46E",basin:"Anzoátegui · Faja Orinoco",lat:8.42,lng:-64.85,bpd:105000,signal:"Movilnet 4G · Digitel 3G en estaciones",epp:"EPP: Arneses altura, botas soldador, guantes anticorte."},
+  {id:8,name:"Petropiar (Huyapari / San Tomé)",category:"petroleo",hse:true,operator:"Petropiar (Chevron)",ofac:"GL 50A Activa (Chevron)",basin:"Anzoátegui · Faja Orinoco",lat:8.65,lng:-64.25,bpd:110000,signal:"Movilnet 4G · Digitel 4G/3G · Movistar 3G",epp:"EPP: Guantes anticorte, lentes herméticos, bragas ignífugas."},
+  {id:9,name:"Sinovensa (Morichal / El Menito)",category:"petroleo",operator:"Sinovensa (CNPC)",ofac:"Sin Licencia OFAC",basin:"Monagas · Faja Orinoco",lat:8.58,lng:-63.48,bpd:90000,signal:"Movilnet 4G · Digitel 4G estable",epp:"EPP: Dotación taladro y macollas horizontales."},
+  {id:10,name:"Petromonagas (Cerro Negro)",category:"petroleo",operator:"Petromonagas (Roszarubezhneft)",ofac:"Sin Licencia OFAC",basin:"Monagas · Faja Orinoco",lat:8.48,lng:-63.28,bpd:80000,signal:"Movilnet 4G · Digitel 3G",epp:"EPP: Botas petroleras, detectores multigas."},
+  {id:11,name:"El Furrial (Maturín)",category:"petroleo",operator:"PDVSA Petróleo S.A.",ofac:"GL 48D Servicios",basin:"Monagas · Cuenca Oriental",lat:9.70,lng:-63.45,bpd:120000,signal:"Digitel, Movistar y Movilnet 4G LTE",epp:"EPP: Bragas alta visibilidad, botas caña alta."},
+  {id:12,name:"Santa Bárbara / Pirital",category:"petroleo",operator:"PDVSA Petróleo S.A.",ofac:"GL 48D Servicios",basin:"Monagas · Cuenca Oriental",lat:9.65,lng:-63.65,bpd:65000,signal:"Digitel 4G · Movilnet 4G · Movistar 3G",epp:"EPP: Protección auditiva doble, cascos dieléctricos."},
+  {id:13,name:"Jusepín (Punta de Mata)",category:"petroleo",operator:"PDVSA Petróleo S.A.",ofac:"GL 48D Servicios",basin:"Monagas · Cuenca Oriental",lat:9.68,lng:-63.52,bpd:55000,signal:"Digitel, Movistar y Movilnet 4G",epp:"EPP: Guantes nitrilo pesado, jeans industriales."},
+  {id:14,name:"Quiriquire (Monagas)",category:"petroleo",hse:true,operator:"Petroquiriquire (Repsol)",ofac:"GL 50A Activa (Repsol)",basin:"Monagas · Cuenca Oriental",lat:9.95,lng:-63.22,bpd:25000,signal:"Movilnet 4G · Digitel 3G",epp:"EPP: Botas impermeables, bragas algodón."},
+  {id:15,name:"Anaco / San Joaquín (Gas)",category:"petroleo",hse:true,operator:"PDVSA Gas / Halliburton / SLB",ofac:"GL 48D Servicios",basin:"Anzoátegui · Cuenca Oriental",lat:9.43,lng:-64.46,bpd:45000,signal:"Digitel, Movistar y Movilnet 4G LTE",epp:"EPP: Ropa antiestática, calzado sin metal."},
+  {id:16,name:"Oficina / El Tigre",category:"petroleo",operator:"PDVSA Petróleo S.A.",ofac:"GL 48D Servicios",basin:"Anzoátegui · Faja Orinoco",lat:8.88,lng:-64.24,bpd:40000,signal:"Digitel, Movistar y Movilnet 4G LTE",epp:"EPP: Camisas ignífugas, botas puntera acero."},
+  {id:17,name:"Pedernales / Tucupita (Delta)",category:"petroleo",operator:"Petrowarao (PDVSA)",ofac:"GL 49B Negociación",basin:"Delta Amacuro · Faja",lat:9.96,lng:-62.25,bpd:18000,signal:"Movilnet 3G · Digitel en Tucupita",epp:"EPP: Chalecos salvavidas SOLAS, botas goma."},
+  {id:18,name:"Dación / Chimire / Cantaura",category:"petroleo",operator:"PDVSA Petróleo S.A.",ofac:"GL 48D Servicios",basin:"Anzoátegui · Cuenca Oriental",lat:9.15,lng:-64.35,bpd:32000,signal:"Digitel 4G · Movilnet 4G · Movistar 3G",epp:"EPP: Dotación mantenimiento de pozos."},
+  {id:19,name:"Boscán (Zulia)",category:"petroleo",hse:true,operator:"Petroboscán (Chevron)",ofac:"GL 50A Activa (Chevron)",basin:"Zulia · Lago de Maracaibo",lat:10.45,lng:-71.95,bpd:85000,signal:"Digitel, Movistar y Movilnet 4G",epp:"EPP: Botas resistentes crudo pesado, lentes UV."},
+  {id:20,name:"Tía Juana (Costa Oriental)",category:"petroleo",operator:"PDVSA Occidente",ofac:"GL 48D Servicios",basin:"Zulia · Lago de Maracaibo",lat:10.25,lng:-71.35,bpd:75000,signal:"Digitel, Movistar y Movilnet 4G LTE",epp:"EPP: Chalecos flotación lacustre, cascos."},
+  {id:21,name:"Bachaquero",category:"petroleo",operator:"PDVSA Occidente",ofac:"GL 48D Servicios",basin:"Zulia · Lago de Maracaibo",lat:9.95,lng:-71.15,bpd:70000,signal:"Digitel 4G · Movilnet 4G · Movistar 3G",epp:"EPP: Bragas transpirables, botas caña alta."},
+  {id:22,name:"Lagunillas / Ciudad Ojeda",category:"petroleo",hse:true,operator:"PDVSA Occidente / Baker Hughes",ofac:"GL 48D Servicios",basin:"Zulia · Lago de Maracaibo",lat:10.13,lng:-71.25,bpd:68000,signal:"Digitel, Movistar y Movilnet 4G LTE",epp:"EPP: Guantes impacto taladro, protección auditiva."},
+  {id:23,name:"Cabimas / La Rosa",category:"petroleo",operator:"Petrocabimas (PDVSA)",ofac:"GL 48D Servicios",basin:"Zulia · Lago de Maracaibo",lat:10.38,lng:-71.44,bpd:45000,signal:"Digitel, Movistar y Movilnet 4G LTE",epp:"EPP: Calzado antideslizante cubierta, lentes."},
+  {id:24,name:"Urdaneta Lago",category:"petroleo",hse:true,operator:"Petroregional del Lago (Maurel & Prom)",ofac:"GL 50A Activa (Maurel & Prom)",basin:"Zulia · Lago de Maracaibo",lat:10.50,lng:-71.60,bpd:38000,signal:"Digitel y Movilnet costero",epp:"EPP: Equipos offshore y gabarras."},
+  {id:25,name:"Mene Grande (Zumaque I)",category:"petroleo",hse:true,operator:"Barúa-Motatán (Repsol)",ofac:"GL 50A Activa (Repsol)",basin:"Zulia · Lago de Maracaibo",lat:9.81,lng:-70.92,bpd:22000,signal:"Movilnet 4G · Digitel 3G",epp:"EPP: Dotación básica cuadrilla tierra."},
+  {id:26,name:"Silvestre / San Silvestre",category:"petroleo",operator:"PDVSA División Boyacá",ofac:"GL 48D Servicios",basin:"Barinas · Barinas-Apure",lat:8.30,lng:-70.15,bpd:24000,signal:"Movilnet 4G · Digitel 3G",epp:"EPP: Botas pantaneras puntera acero."},
+  {id:27,name:"Guafita (Apure)",category:"petroleo",operator:"PDVSA División Boyacá",ofac:"GL 48D Servicios",basin:"Apure · Barinas-Apure",lat:7.05,lng:-71.20,bpd:19000,signal:"Movilnet en estación",epp:"EPP: Bragas manga larga, botas altas."},
+  {id:28,name:"La Victoria (Apure)",category:"petroleo",operator:"PDVSA División Boyacá",ofac:"GL 48D Servicios",basin:"Apure · Barinas-Apure",lat:7.02,lng:-71.45,bpd:15000,signal:"Movilnet fronterizo básico",epp:"EPP: Dotación producción y oleoducto."},
+  {id:29,name:"Petrourica / Huyapari Sur (Bloque Junín)",category:"petroleo",operator:"Petrourica (CNPC)",ofac:"Sin Licencia OFAC",basin:"Anzoátegui Sur · Faja Orinoco",lat:8.32,lng:-64.45,bpd:42000,signal:"Movilnet 4G · Digitel 3G en estaciones",epp:"EPP: Botas caña alta, bragas ignífugas y protección solar. Macollas de crudo extrapesado."},
+  {id:30,name:"Bare / Melones / Lechozo (Faja Ayacucho)",category:"petroleo",operator:"PDVSA Producción Faja",ofac:"GL 48D Servicios",basin:"Anzoátegui · Sur de El Tigre",lat:8.62,lng:-64.10,bpd:58000,signal:"Movilnet 4G · Digitel 4G/3G",epp:"EPP: Dotación mantenimiento bombas PCP, taladros y estaciones de flujo."},
+  {id:31,name:"Oritupano / Leona (Anzoátegui – Monagas)",category:"petroleo",operator:"Petroritupano / PDVSA",ofac:"GL 48D Servicios",basin:"Anzoátegui / Monagas · Cuenca Oriental",lat:9.12,lng:-63.82,bpd:34000,signal:"Digitel 4G · Movilnet 4G · Movistar 3G",epp:"EPP: Ropa industrial resistente a hidrocarburos, cascos dieléctricos y guantes."},
+  {id:32,name:"Güico / Mata / Zapatos (Mesa de Guanipa)",category:"petroleo",operator:"PDVSA / Empresas Mixtas Oriente",ofac:"GL 48D Servicios",basin:"Anzoátegui · Eje Cantaura – San Tomé",lat:9.05,lng:-64.28,bpd:39000,signal:"Digitel, Movistar y Movilnet 4G",epp:"EPP: Dotación pozos de crudo liviano/mediano y plantas compresoras de gas."},
+  {id:33,name:"Mulata / Carito / El Tejero (Monagas)",category:"petroleo",operator:"PDVSA Producción Oriente",ofac:"GL 48D Servicios",basin:"Monagas · Norte de Monagas",lat:9.62,lng:-63.58,bpd:78000,signal:"Digitel 4G · Movilnet 4G · Movistar 3G",epp:"EPP: Bragas ignífugas de alta presión, detectores multigas H2S y botas dieléctricas."},
+  {id:34,name:"Las Mercedes / Tucupido / Palacio (Guárico)",category:"petroleo",operator:"Petroguárico / PDVSA Gas",ofac:"GL 48D Servicios",basin:"Guárico · Cuenca Oriental Oeste",lat:9.18,lng:-66.38,bpd:21000,signal:"Digitel 4G · Movilnet 4G · Movistar 3G",epp:"EPP: Dotación cuadrillas de gas, compresión y mantenimiento de líneas."},
+  {id:35,name:"Mara / La Paz / Concepción (Zulia Oeste)",category:"petroleo",operator:"PDVSA Occidente",ofac:"GL 48D Servicios",basin:"Zulia · Noroeste de Maracaibo",lat:10.75,lng:-71.95,bpd:31000,signal:"Digitel, Movistar y Movilnet 4G",epp:"EPP: Botas caña alta, lentes UV y guantes de impacto para workover en tierra."},
+  {id:36,name:"Urdaneta Tierra / Alturitas / Machiques",category:"petroleo",operator:"Petroperijá (Roszarubezhneft)",ofac:"Sin Licencia OFAC",basin:"Zulia · Perijá / Costa Occidental",lat:10.05,lng:-72.35,bpd:26000,signal:"Movilnet 4G · Digitel 3G en Machiques",epp:"EPP: Dotación completa taladro tierra, botas pantaneras y bragas manga larga."},
+  {id:37,name:"La Ceiba / Motatán (Trujillo – Zulia)",category:"petroleo",hse:true,operator:"Barúa-Motatán (Repsol)",ofac:"GL 50A Activa (Repsol)",basin:"Trujillo / Zulia · Sur del Lago",lat:9.52,lng:-70.88,bpd:24000,signal:"Movilnet 4G · Digitel 3G",epp:"EPP: Calzado antideslizante, bragas algodón y protección auditiva."},
+  {id:38,name:"Proyecto Gasífero Perla / Cardón IV & Dragón",category:"petroleo",hse:true,operator:"Cardón IV (Repsol - Eni) / Shell",ofac:"GL 50A Activa",basin:"Falcón / Sucre · Costa Afuera (Offshore)",lat:11.65,lng:-70.45,bpd:90000,signal:"Digitel, Movistar y Movilnet 4G en bases tierra",epp:"EPP: Estándar offshore HSE/API, chalecos SOLAS, ropa Nomex y calzado dieléctrico."},
+
+  // 14 COMANDOS DE GUARDIA NACIONAL (GNB) Y POLICÍA
+  {id:501,name:"Destacamento GNB D-523 El Tigre",category:"seguridad",basin:"Anzoátegui · Faja Orinoco",lat:8.88,lng:-64.26,bpd:0,epp:"Comando Guardia Nacional · Resguardo vial, control de guías de carga pesada y custodia petrolera en El Tigre."},
+  {id:502,name:"Comando GNB San Tomé / Distrito Faja",category:"seguridad",basin:"Anzoátegui · Faja Orinoco",lat:8.93,lng:-64.15,bpd:0,epp:"Seguridad de instalaciones petroleras, taladros y patios de tanques Distrito San Tomé."},
+  {id:503,name:"Puesto GNB / Policía Pariaguán – Zuata",category:"seguridad",basin:"Anzoátegui · Bloque Junín",lat:8.60,lng:-64.72,bpd:0,epp:"Punto de control vial corredor Pariaguán – Zuata – San Diego de Cabrutica."},
+  {id:504,name:"Comando GNB / Poliguárico Chaguaramas",category:"seguridad",basin:"Guárico · Bloque Boyacá",lat:9.33,lng:-66.25,bpd:0,epp:"Comando GNB y Policía Estadal de Guárico · Cobertura vial Bloque Boyacá (Machete)."},
+  {id:505,name:"Destacamento GNB Morichal / Temblador",category:"seguridad",basin:"Monagas Sur · Carabobo",lat:8.54,lng:-63.40,bpd:0,epp:"Resguardo instalaciones Carabobo, Cerro Negro, Sinovensa y vía Delta Amacuro."},
+  {id:506,name:"Destacamento GNB D-522 Anaco / Cantaura",category:"seguridad",basin:"Anzoátegui · Eje Gasífero Troncal 16",lat:9.42,lng:-64.45,bpd:0,epp:"Comando Guardia Nacional y Policía Municipal · Control vial corredor gasífero Anaco – Cantaura – San Joaquín."},
+  {id:507,name:"Comando GNB Complejo José / Policía Barcelona",category:"seguridad",basin:"Anzoátegui Norte · Criogénico José",lat:10.09,lng:-64.82,bpd:0,epp:"Custodia de accesos al Complejo Criogénico José, mejoradores de crudo y Refinería Puerto La Cruz."},
+  {id:508,name:"Destacamento GNB D-511 Maturín / El Furrial",category:"seguridad",basin:"Monagas · Cuenca Oriental",lat:9.72,lng:-63.25,bpd:0,epp:"Comando de Zona GNB Monagas y Polimonagas · Resguardo operativo eje El Furrial – Carito – Maturín."},
+  {id:509,name:"Puesto GNB / Policía Punta de Mata – Jusepín",category:"seguridad",basin:"Monagas · Troncal 13 Norte Monagas",lat:9.69,lng:-63.53,bpd:0,epp:"Punto de control de transporte pesado, cisternas y cuadrillas entre Punta de Mata y Santa Bárbara."},
+  {id:510,name:"Destacamento GNB D-113 Cabimas / Costa Oriental",category:"seguridad",basin:"Zulia · Costa Oriental del Lago",lat:10.37,lng:-71.44,bpd:0,epp:"Comando Guardia Nacional y Policabimas · Resguardo de instalaciones lacustres La Salina y vías COL."},
+  {id:511,name:"Comando GNB / Policía Ciudad Ojeda – Lagunillas",category:"seguridad",basin:"Zulia · Eje Petrolero Lagunillas",lat:10.18,lng:-71.29,bpd:0,epp:"Control vial Av. Intercomunal, patios de tubería, taladros y acceso a Bachaquero."},
+  {id:512,name:"Destacamento GNB Maracaibo / Alcabala Vía Boscán",category:"seguridad",basin:"Zulia · Km 18 Vía Perijá / Boscán",lat:10.52,lng:-71.75,bpd:0,epp:"Punto de control GNB y Policía Regional en corredor de carga hacia Campo Boscán y Machiques."},
+  {id:513,name:"Destacamento GNB D-331 Barinas / Eje Silvestre",category:"seguridad",basin:"Barinas · División Boyacá",lat:8.58,lng:-70.18,bpd:0,epp:"Comando Guardia Nacional y Policía de Barinas · Resguardo campos Silvestre y ruta hacia Guafita (Apure)."},
+  {id:514,name:"Puesto GNB / Poliguárico Valle de la Pascua – El Socorro",category:"seguridad",basin:"Guárico · Troncal 13 Llanos",lat:9.21,lng:-65.98,bpd:0,epp:"Punto de control estratégico en el enlace vial entre Guárico, Pariaguán y la Faja Petrolífera del Orinoco."},
+
+  // 10 OFICINAS PDVSA
+  {id:101,name:"Sede Administrativa PDVSA El Tigre / CISDEN",category:"oficinas",operator:"PDVSA Petróleo S.A.",ofac:"Procura Faja",basin:"Anzoátegui · Faja Orinoco",lat:8.89,lng:-64.25,bpd:0,epp:"Gerencia de Procura, Contratación, Finanzas y Registro Proveedores Faja."},
+  {id:102,name:"Campo San Tomé - Edificio Sede Distrito",category:"oficinas",operator:"PDVSA Petróleo S.A.",ofac:"Distrito San Tomé",basin:"Anzoátegui · Faja Orinoco",lat:8.94,lng:-64.14,bpd:0,epp:"Dirección Ejecutiva Faja Petrolífera del Orinoco y Logística."},
+  {id:103,name:"Complejo Administrativo El Menito / Morichal",category:"oficinas",operator:"PDVSA Petróleo S.A.",ofac:"División Carabobo",basin:"Monagas · Faja Orinoco",lat:8.55,lng:-63.38,bpd:0,epp:"Gerencia División Carabobo, Empresas Mixtas y Compras."},
+  {id:104,name:"Edificio Sede PDVSA La Campiña",category:"oficinas",operator:"PDVSA Petróleo S.A.",ofac:"Sede Central",basin:"Caracas · Distrito Capital",lat:10.49,lng:-66.87,bpd:0,epp:"Presidencia, Bariven Nacional y Contrataciones Corporativas."},
+  {id:105,name:"Edificio Sede Guaraguao / Refinación Oriente",category:"oficinas",operator:"PDVSA Petróleo S.A.",ofac:"Refinación Oriente",basin:"Puerto La Cruz · Anzoátegui",lat:10.22,lng:-64.63,bpd:0,epp:"Gerencia Refinación Oriente y Almacenes Bariven."},
+  {id:106,name:"Edificio Sede PDVSA Maturín",category:"oficinas",operator:"PDVSA Petróleo S.A.",ofac:"Producción Oriente",basin:"Maturín · Monagas",lat:9.74,lng:-63.18,bpd:0,epp:"Dirección Ejecutiva Producción Oriente y Procura."},
+  {id:107,name:"Edificio Miranda / 5 de Julio (Occidente)",category:"oficinas",operator:"PDVSA Occidente",ofac:"Producción Occidente",basin:"Maracaibo · Zulia",lat:10.66,lng:-71.61,bpd:0,epp:"Dirección Ejecutiva Producción Occidente y Bariven Zulia."},
+  {id:108,name:"Edificio Sede La Salina (Costa Oriental)",category:"oficinas",operator:"PDVSA Occidente",ofac:"Operaciones Lacustres",basin:"Cabimas · Zulia",lat:10.36,lng:-71.45,bpd:0,epp:"Gerencia Operaciones Acuáticas y Contratación COL."},
+  {id:109,name:"Sede Administrativa CRP (Cardón / Amuay)",category:"oficinas",operator:"PDVSA Refinación",ofac:"CRP Paraguaná",basin:"Punto Fijo · Falcón",lat:11.63,lng:-70.21,bpd:0,epp:"Centro de Refinación Paraguaná: Gerencia de Compras y EPP."},
+  {id:110,name:"Edificio Sede División Boyacá",category:"oficinas",operator:"PDVSA División Boyacá",ofac:"División Boyacá",basin:"Barinas / Chaguaramas",lat:8.62,lng:-70.21,bpd:0,epp:"Gerencia General División Boyacá y Logística Llanos/Faja Oeste."},
+
+  // 12 INTERNACIONALES Y MIXTAS (VIP 🔒)
+  {id:201,name:"Chevron (Petropiar / Petroboscán / Petroindependencia)",category:"internacional",badge:"verified",hse:true,operator:"Chevron (EE. UU.)",ofac:"GL 50A Activa · HSE/API",basin:"Zulia · Anzoátegui · Faja",lat:10.67,lng:-71.62,bpd:245000,workers:"~4.500 - 6.000 trabajadores",vip:true,epp:"Sedes: Av. 5 de Julio Maracaibo, Campo San Tomé y Complejo José. Trabajo: Extracción y mejoramiento (~245.000 BPD). Estándar estricto HSE/API."},
+  {id:202,name:"Repsol (Petroquiriquire / Cardón IV / Barúa-Motatán)",category:"internacional",badge:"verified",hse:true,operator:"Repsol (España)",ofac:"GL 50A Activa · HSE/API",basin:"Caracas · Monagas · Zulia · Falcón",lat:10.50,lng:-66.85,bpd:55000,workers:"~2.200 - 3.000 trabajadores",vip:true,epp:"Sedes: La Castellana Caracas, Quiriquire (Monagas), Mene Grande (Zulia) y Punto Fijo. Trabajo: Crudo y 50% megacampo gas Perla."},
+  {id:203,name:"Eni (PetroSucre / Bloque Junín 5 / Cardón IV)",category:"internacional",badge:"verified",hse:true,operator:"Eni (Italia)",ofac:"GL 50A Activa · HSE/API",basin:"Anzoátegui (Faja) · Sucre · Falcón",lat:8.86,lng:-64.71,bpd:20000,workers:"~1.800 - 2.500 trabajadores",vip:true,epp:"Sedes: Pariaguán (Bloque Junín 5), Güiria (Sucre) y Av. Fco. de Miranda Caracas. Trabajo: Operador Bloque Junín 5 Faja y gas costa afuera."},
+  {id:204,name:"Maurel & Prom (Petroregional del Lago)",category:"internacional",badge:"verified",hse:true,operator:"Maurel & Prom (Francia)",ofac:"GL 50A Activa · HSE/API",basin:"Zulia · Lago de Maracaibo",lat:10.48,lng:-71.63,bpd:22000,workers:"~900 - 1.300 trabajadores",vip:true,epp:"Sedes: Bella Vista Maracaibo y Urdaneta Oeste. Trabajo: Rehabilitación pozos lacustres."},
+  {id:205,name:"Sinovensa (CNPC China)",category:"internacional",operator:"CNPC / Sinovensa (China)",ofac:"Sin Licencia OFAC",basin:"Monagas · Faja Orinoco",lat:8.56,lng:-63.46,bpd:100000,workers:"~2.500 - 3.500 trabajadores",vip:true,epp:"Sedes: Morichal / El Menito (Monagas) y José. Trabajo: Macollas horizontales y blending Merey 16."},
+  {id:206,name:"Petromonagas (Roszarubezhneft Rusia)",category:"internacional",operator:"Roszarubezhneft (Rusia)",ofac:"Sin Licencia OFAC",basin:"Monagas · Faja Orinoco",lat:8.50,lng:-63.30,bpd:85000,workers:"~1.800 - 2.400 trabajadores",vip:true,epp:"Sedes: Cerro Negro / Morichal y Mejorador José. Trabajo: Crudo extrapesado y mejoramiento."},
+  {id:207,name:"PetroSanCristóbal / Indovenezolana (ONGC India)",category:"internacional",operator:"ONGC Videsh (India)",ofac:"Evaluación GL 49B",basin:"Anzoátegui · Faja Orinoco",lat:8.38,lng:-64.75,bpd:22000,workers:"~1.100 - 1.600 trabajadores",vip:true,epp:"Sedes: Zuata / San Diego de Cabrutica y Pariaguán. Trabajo: Reactivación pozos Junín Norte y Carabobo-1."},
+  {id:208,name:"Shell & BP (Proyectos Gasíferos Dragón / Cocuina)",category:"internacional",badge:"verified",hse:true,operator:"Shell (Reino Unido/PB)",ofac:"GL 50A Activa · HSE/API",basin:"Sucre · Península de Paria",lat:10.57,lng:-62.30,bpd:0,workers:"~600 - 1.000 trabajadores",vip:true,epp:"Sedes: Base Portuaria Güiria (Sucre) y Caracas. Trabajo: Campos gasíferos Dragón y Cocuina-Manakin."},
+  {id:209,name:"Halliburton de Venezuela",category:"internacional",badge:"verified",hse:true,operator:"Halliburton",ofac:"GL 48D Servicios · HSE/API",basin:"Monagas · Anzoátegui · Zulia",lat:9.72,lng:-63.20,bpd:0,workers:"~800 - 1.200 trabajadores",vip:true,epp:"Sedes: Zona Industrial Maturín, Carretera Negra El Tigre/Anaco, Ciudad Ojeda y El Rosal Caracas. Trabajo: Cementación, fracturamiento y fluidos."},
+  {id:210,name:"SLB (antes Schlumberger)",category:"internacional",badge:"verified",hse:true,operator:"SLB (Schlumberger)",ofac:"GL 48D Servicios · HSE/API",basin:"Anzoátegui · Monagas · Zulia",lat:9.44,lng:-64.45,bpd:0,workers:"~750 - 1.100 trabajadores",vip:true,epp:"Sedes: Carretera Nacional Anaco, Maturín, Ciudad Ojeda y La Castellana Caracas. Trabajo: Perfilaje wireline, perforación direccional y pruebas."},
+  {id:211,name:"Baker Hughes",category:"internacional",badge:"verified",hse:true,operator:"Baker Hughes",ofac:"GL 48D Servicios · HSE/API",basin:"Zulia · Anzoátegui · Monagas",lat:10.20,lng:-71.31,bpd:0,workers:"~500 - 800 trabajadores",vip:true,epp:"Sedes: Ciudad Ojeda/Maracaibo y Anaco/El Tigre. Trabajo: Bombas electrosumergibles (BES), levantamiento artificial y válvulas API."},
+  {id:212,name:"Weatherford International",category:"internacional",badge:"verified",hse:true,operator:"Weatherford",ofac:"GL 48D Servicios · HSE/API",basin:"Anzoátegui · Monagas · Zulia",lat:9.42,lng:-64.47,bpd:0,workers:"~450 - 750 trabajadores",vip:true,epp:"Sedes: Zona Industrial Anaco, Maturín y COL. Trabajo: Tubería continua (coiled tubing), pesca y mantenimiento de taladros."},
+
+  // 10 CONTRATISTAS NACIONALES (VIP 🔒)
+  {id:301,name:"INELECTRA (Ingeniería, Procura y Construcción)",category:"nacional",badge:"verified",hse:true,operator:"INELECTRA",ofac:"Contratista Nacional · ISO/HSE",basin:"Anzoátegui · Monagas · Zulia · Caracas",lat:10.20,lng:-64.64,bpd:0,workers:"~1.200 - 1.800 trabajadores",vip:true,epp:"Sedes: Puerto La Cruz, El Tigre/San Tomé, Maturín, Maracaibo y Caracas. Trabajo: IPC plantas de gas y mejoradores."},
+  {id:302,name:"VEPICA (Venezolana de Proyectos Integrados)",category:"nacional",badge:"verified",hse:true,operator:"VEPICA",ofac:"Contratista Nacional · ISO/HSE",basin:"Anzoátegui · Monagas · Zulia · Caracas",lat:9.45,lng:-64.48,bpd:0,workers:"~900 - 1.400 trabajadores",vip:true,epp:"Sedes: Anaco, Puerto La Cruz, Maturín, Maracaibo y Caracas. Trabajo: Ingeniería de detalle e inspección en la Faja."},
+  {id:303,name:"TECNOCONSULT",category:"nacional",badge:"verified",hse:true,operator:"TECNOCONSULT",ofac:"Contratista Nacional · ISO/HSE",basin:"Anzoátegui · Zulia · Caracas",lat:8.90,lng:-64.23,bpd:0,workers:"~700 - 1.100 trabajadores",vip:true,epp:"Sedes: El Tigre / Anaco, Maracaibo y Chuao Caracas. Trabajo: Oleoductos y estaciones de flujo."},
+  {id:304,name:"Otepi / Otepi Consultores",category:"nacional",operator:"Otepi",ofac:"Contratista Nacional",basin:"Anzoátegui · Falcón · Caracas",lat:10.21,lng:-64.62,bpd:0,workers:"~600 - 950 trabajadores",vip:true,epp:"Sedes: Puerto La Cruz, Punto Fijo (CRP) y Las Mercedes Caracas. Trabajo: Refinación y gas."},
+  {id:305,name:"Grupo Conkor (Servicios Petroleros)",category:"nacional",operator:"Grupo Conkor",ofac:"Contratista Nacional",basin:"Anzoátegui · Monagas · Faja",lat:8.92,lng:-64.22,bpd:0,workers:"~500 - 850 trabajadores",vip:true,epp:"Sedes: Carretera Negra El Tigre / Anaco y Maturín. Trabajo: Taladros workover y mantenimiento de pozos."},
+  {id:306,name:"Suelopetrol",category:"nacional",operator:"Suelopetrol",ofac:"Contratista Nacional",basin:"Anzoátegui · Monagas · Guárico",lat:8.84,lng:-64.68,bpd:0,workers:"~450 - 750 trabajadores",vip:true,epp:"Sedes: Pariaguán / El Tigre, Maturín y Caracas. Trabajo: Sísmica 2D/3D y producción en bloques Faja."},
+  {id:307,name:"Ehcopek (Servicios de Perforación)",category:"nacional",operator:"Ehcopek",ofac:"Contratista Nacional",basin:"Anzoátegui · Monagas · Faja",lat:8.95,lng:-64.15,bpd:0,workers:"~600 - 900 trabajadores",vip:true,epp:"Sedes: San Tomé / El Tigre y Morichal. Trabajo: Taladros perforación Ayacucho y Carabobo."},
+  {id:308,name:"Petrex / Servicios de Perforación Oriente",category:"nacional",operator:"Petrex Oriente",ofac:"Contratista Nacional",basin:"Anzoátegui · Monagas",lat:9.41,lng:-64.46,bpd:0,workers:"~550 - 800 trabajadores",vip:true,epp:"Sedes: Zona Industrial Anaco / El Tigre y Maturín. Trabajo: Perforación direccional y taladros."},
+  {id:309,name:"Z&P Construction",category:"nacional",operator:"Z&P Construction",ofac:"Contratista Nacional",basin:"Zulia · Anzoátegui · Monagas",lat:10.19,lng:-71.30,bpd:0,workers:"~800 - 1.300 trabajadores",vip:true,epp:"Sedes: Ciudad Ojeda / Maracaibo y El Tigre / Morichal. Trabajo: Macollas, movimiento de tierras y oleoductos."},
+  {id:310,name:"Tiven (Transportes Industriales)",category:"nacional",badge:"verified",hse:true,operator:"Tiven Logística",ofac:"Contratista Nacional · HSE",basin:"Anzoátegui · Monagas · Zulia",lat:8.87,lng:-64.26,bpd:0,workers:"~400 - 700 trabajadores",vip:true,epp:"Sedes: Zona Industrial El Tigre / Anaco, Maturín y Cabimas. Trabajo: Movilización taladros, grúas y cama baja."},
+
+  // 16 ESTACIONES DE SERVICIO (GASOIL / GASOLINA)
+  {id:401,name:"E/S Pariaguán (Vía Faja / Zuata)",category:"combustible",basin:"Anzoátegui · Faja Orinoco",lat:8.84,lng:-64.71,bpd:0,epp:"Despacho: Gasoil (Diésel) pesado/cuadrillas y Gasolina. Punto clave entrada Zuata y Cabrutica."},
+  {id:402,name:"E/S San Diego de Cabrutica",category:"combustible",basin:"Anzoátegui Sur · Faja",lat:8.36,lng:-64.71,bpd:0,epp:"Despacho: Gasoil y Gasolina operativa flotas Bloque Junín."},
+  {id:403,name:"E/S El Tigre (Av. Intercomunal)",category:"combustible",basin:"Anzoátegui · Faja Orinoco",lat:8.90,lng:-64.22,bpd:0,epp:"Despacho: Gasoil alto volumen (gandolas/cama baja) y Gasolina 24h."},
+  {id:407,name:"E/S Anaco (Carretera Nacional / Zona Industrial)",category:"combustible",basin:"Anzoátegui · Centro Gasífero",lat:9.43,lng:-64.45,bpd:0,epp:"Despacho: Gasoil y Gasolina 24h para flotas de taladros, SLB, Halliburton y transporte pesado."},
+  {id:408,name:"E/S Cantaura / Troncal 16 Anzoátegui",category:"combustible",basin:"Anzoátegui · Eje Anaco - El Tigre",lat:9.31,lng:-64.35,bpd:0,epp:"Despacho: Gasoil y Gasolina corredor norte-sur hacia San Tomé y campos Dación/Chimire."},
+  {id:409,name:"E/S Barcelona / Entrada Complejo José",category:"combustible",basin:"Anzoátegui Norte · Criogénico",lat:10.10,lng:-64.81,bpd:0,epp:"Despacho: Gasoil industrial cisternas y Gasolina acceso a Mejoradores y Refinería Puerto La Cruz."},
+  {id:404,name:"E/S Chaguaramas / Valle de la Pascua",category:"combustible",basin:"Guárico · Bloque Boyacá",lat:9.21,lng:-66.01,bpd:0,epp:"Despacho: Gasoil y Gasolina troncal Bloque Boyacá (Machete)."},
+  {id:405,name:"E/S Morichal / Temblador",category:"combustible",basin:"Monagas Sur · Carabobo",lat:8.99,lng:-62.64,bpd:0,epp:"Despacho: Gasoil y Gasolina Cerro Negro, Sinovensa y vía Tucupita (Delta)."},
+  {id:410,name:"E/S Maturín (Zona Industrial / Vía El Furrial)",category:"combustible",basin:"Monagas · Cuenca Oriental",lat:9.73,lng:-63.22,bpd:0,epp:"Despacho: Gasoil y Gasolina flotas operadoras norte de Monagas, Jusepín y Punta de Mata."},
+  {id:406,name:"E/S Ciudad Bolívar (Puente Angostura)",category:"combustible",basin:"Bolívar · Eje Sur Faja",lat:8.12,lng:-63.54,bpd:0,epp:"Despacho: Gasoil industrial y Gasolina eje Orinoco Sur."},
+  {id:411,name:"E/S Maracaibo / Km 4 Vía Perijá (Boscán)",category:"combustible",basin:"Zulia · Cuenca Maracaibo",lat:10.56,lng:-71.68,bpd:0,epp:"Despacho: Gasoil alto volumen y Gasolina para flotas Petroboscán, Chevron y transporte pesado."},
+  {id:412,name:"E/S Ciudad Ojeda / Lagunillas (Av. Intercomunal)",category:"combustible",basin:"Zulia · Costa Oriental del Lago",lat:10.19,lng:-71.30,bpd:0,epp:"Despacho: Gasoil y Gasolina 24h en el corazón petrolero de la COL (Tía Juana, Lagunillas, Baker Hughes)."},
+  {id:413,name:"E/S Cabimas / La Salina (Costa Oriental)",category:"combustible",basin:"Zulia · Costa Oriental del Lago",lat:10.37,lng:-71.44,bpd:0,epp:"Despacho: Gasoil y Gasolina para cuadrillas lacustres, gabarras y contratistas de Cabimas."},
+  {id:414,name:"E/S Bachaquero / Mene Grande (Zulia Sur)",category:"combustible",basin:"Zulia · Eje Barúa-Motatán",lat:9.94,lng:-71.13,bpd:0,epp:"Despacho: Gasoil y Gasolina operativo campos Bachaquero y Barúa-Motatán (Repsol)."},
+  {id:415,name:"E/S Barinas (Troncal 5 / Vía San Silvestre)",category:"combustible",basin:"Barinas · División Boyacá",lat:8.61,lng:-70.20,bpd:0,epp:"Despacho: Gasoil y Gasolina flotas División Boyacá, campos Silvestre y enlace hacia Apure."},
+  {id:416,name:"E/S Guasdualito / Eje Guafita – La Victoria",category:"combustible",basin:"Apure · Barinas-Apure",lat:7.24,lng:-70.73,bpd:0,epp:"Despacho: Gasoil y Gasolina operativo campos Guafita y La Victoria en el eje fronterizo."},
+
+  // SALUD, TERMINALES Y PROVEEDORES B2B
+  {id:601,name:"Hospital Dr. Felipe Guevara Rojas (El Tigre)",category:"salud",basin:"Anzoátegui · Faja Orinoco",lat:8.89,lng:-64.23,bpd:0,epp:"Hospital General · Emergencia 24h, traumatología y cirugía. Referencia Faja."},
+  {id:602,name:"Hospital Industrial San Tomé (PDVSA Salud)",category:"salud",basin:"Anzoátegui · Faja Orinoco",lat:8.94,lng:-64.13,bpd:0,epp:"Emergencias petroleras, ambulancias y medicina ocupacional."},
+  {id:603,name:"Hospital Tipo I y CDI Pariaguán / Cabrutica",category:"salud",basin:"Anzoátegui · Bloque Junín",lat:8.85,lng:-64.71,bpd:0,epp:"Emergencia 24h y estabilización primaria cuadrillas Zuata y Junín 5."},
+  {id:604,name:"CDI Morichal / Hospital Temblador",category:"salud",basin:"Monagas Sur · Carabobo",lat:9.00,lng:-62.63,bpd:0,epp:"Cobertura médica emergencia Cerro Negro, Morichal y Uracoa."},
+  {id:605,name:"Hospital Univ. Ruiz y Páez (Bolívar) / Razetti (Tucupita)",category:"salud",basin:"Bolívar / Delta Amacuro",lat:8.13,lng:-63.53,bpd:0,epp:"Centros hospitalarios alta complejidad eje sur y deltaico Faja."},
+  {id:701,name:"Terminal Cleto Quijada (El Tigre)",category:"terminal",basin:"Anzoátegui · Faja Orinoco",lat:8.88,lng:-64.25,bpd:0,epp:"Nodo rotación de guardias hacia Caracas, Valencia, Maturín, San Tomé y Pariaguán."},
+  {id:702,name:"Terminal Terrestre Pariaguán / Valle de la Pascua",category:"terminal",basin:"Anzoátegui / Guárico",lat:8.84,lng:-64.70,bpd:0,epp:"Conexión transporte hacia Zuata, Cabrutica, Boyacá y centro del país."},
+  {id:703,name:"Terminal Interurbano Maturín / Cabimas",category:"terminal",basin:"Monagas / Zulia",lat:9.72,lng:-63.17,bpd:0,epp:"Rutas directas hacia Morichal, Temblador, El Furrial y Costa Oriental."},
+  {id:801,name:"Central Dotación EPP Faja (Botas ANSI, Bragas, Cascos)",category:"comercio",badge:"verified",hse:true,basin:"Anzoátegui · Monagas · Nacional",lat:8.89,lng:-64.24,bpd:0,epp:"Suministro al mayor para contratistas: Botas caña alta ANSI/COVENIN, bragas ignífugas, jeans 14oz, cascos. Correo: Venepetrolintel3D@gmail.com"}
+];
+
+let nodes=JSON.parse(localStorage.getItem('vp_nodes_master_v9'))||defaultNodes;
+
+const map=L.map('map').setView([8.85,-65.1],6);
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'Esri Satellite · VenePetrol Intel'}).addTo(map);
+let markersLayer=L.layerGroup().addTo(map);
+let pipesLayer=L.layerGroup().addTo(map);
+
+function drawPipelines(){
+  pipesLayer.clearLayers();
+  pipelines.forEach(p=>{
+    const line=L.polyline(p.coords,{color:p.color,weight:3.5,opacity:0.85,dashArray:'8, 6'}).addTo(pipesLayer);
+    line.bindPopup(`<div style="max-width:225px;"><b>🔗 ${p.name}</b><br/><span style="font-size:11px;color:#475569;">Corredor referencial público de logística y mantenimiento industrial.</span></div>`);
+  });
+}
+
+function toggleDrawer(o){document.getElementById('sideDrawer').classList.toggle('open',o);document.getElementById('drawerBackdrop').style.display=o?'block':'none';}
+function selectCat(c){toggleDrawer(false);curCat=c;document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('active'));render();}
+function filterCat(c,b){curCat=c;document.querySelectorAll('.cat-btn').forEach(x=>x.classList.remove('active'));if(b)b.classList.add('active');render();}
+function updateVIPBadge(){
+  const el=document.getElementById('kpi-vip');
+  if(curLang==='en') el.innerText=isVIP?"🔓 VIP Active":"🔒 Guest";
+  else el.innerText=isVIP?"🔓 VIP Activo":"🔒 Invitado";
+  el.style.color=isVIP?"#10b981":"#d8b4fe";
+}
+function unlockVIP(){
+  if(document.getElementById('vipCodeInput').value.trim().toUpperCase()===vipPass.toUpperCase()){
+    isVIP=true;localStorage.setItem('vp_is_vip','true');updateVIPBadge();renderFichasList();render();
+    alert("✅ ¡Acceso VIP Desbloqueado! Ya puedes ver todas las fichas técnicas, cuadrillas certificadas y pliegos.");
+  }else alert("❌ Clave incorrecta. Solicita tu clave VIP por WhatsApp al +58 412-1788766 o al correo Venepetrolintel3D@gmail.com.");
+}
+
+async function fetchWeather(lat,lng){
+  try{
+    const c=new AbortController();const t=setTimeout(()=>c.abort(),5000);
+    const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,wind_speed_10m`,{signal:c.signal});
+    clearTimeout(t);const d=await r.json();
+    if(d&&d.current)return `${d.current.temperature_2m}°C · Viento: ${d.current.wind_speed_10m} km/h`;
+  }catch(e){return null;}return null;
+}
+
+function getColor(c){return{petroleo:'#f59e0b',oficinas:'#3b82f6',internacional:'#a855f7',nacional:'#ea580c',talento:'#0ea5e9',taller:'#f97316',cauchera:'#ef4444',parador:'#ec4899',ducto:'#06b6d4',taladro:'#f43f5e',licitaciones:'#10b981',vialidad:'#eab308',seguridad:'#16a34a',combustible:'#dc2626',salud:'#e11d48',terminal:'#cbd5e1',comercio:'#10b981'}[c]||'#38bdf8';}
+function getLabel(c){
+  if(curLang==='en'){
+    return{petroleo:'Oil Field',oficinas:'PDVSA',internacional:'Intl JV',nacional:'Contractor',talento:'VIP Certified',taller:'Workshop',cauchera:'Tire Shop',parador:'Diner/Stop',ducto:'Pipeline',taladro:'Active Rig',licitaciones:'Tender',vialidad:'Road Alert',seguridad:'GNB/Police',combustible:'Fuel/Diesel',salud:'Health/CDI',terminal:'Terminal',comercio:'Supplier'}[c]||c;
+  }
+  return{petroleo:'Campo',oficinas:'PDVSA',internacional:'Internacional',nacional:'Contratista Nac.',talento:'Certificado VIP',taller:'Taller Pesado',cauchera:'Cauchera',parador:'Parador/Rest.',ducto:'Ducto Ref.',taladro:'Taladro Activo',licitaciones:'Licitación',vialidad:'Alerta Vial',seguridad:'GNB/Policía',combustible:'Combustible',salud:'Salud/CDI',terminal:'Terminal',comercio:'Proveedor'}[c]||c;
+}
+
+function render(){
+  markersLayer.clearLayers();
+  if(curCat==='TODAS'||curCat==='ducto') drawPipelines(); else pipesLayer.clearLayers();
+
+  const list=document.getElementById('nodesList');list.innerHTML='';
+  const q=document.getElementById('searchInput').value.toLowerCase();
+  const selOp=document.getElementById('operatorFilter').value;
+  let bpd=0;
+
+  const filtered=nodes.filter(n=>{
+    const mCat=curCat==='TODAS'||(curCat==='HSE'&&n.hse)||n.category===curCat;
+    const mOp=selOp==='ALL'||(n.operator&&n.operator.toLowerCase().includes(selOp.split(' ')[0].toLowerCase()))||n.name.toLowerCase().includes(selOp.split(' ')[0].toLowerCase());
+    const mQ=n.name.toLowerCase().includes(q)||n.basin.toLowerCase().includes(q)||(n.operator&&n.operator.toLowerCase().includes(q))||(n.ofac&&n.ofac.toLowerCase().includes(q))||(n.signal&&n.signal.toLowerCase().includes(q))||(!n.vip&&n.epp&&n.epp.toLowerCase().includes(q));
+    return mCat&&mOp&&mQ;
+  });
+
+  filtered.forEach(n=>{
+    bpd+=Number(n.bpd||0);
+    const locked=n.vip&&!isVIP;
+    const mk=L.circleMarker([n.lat,n.lng],{radius:7,fillColor:getColor(n.category),color:'#fff',weight:1.5,fillOpacity:.95}).addTo(markersLayer);
+
+    mk.on('click',async()=>{
+      map.setView([n.lat,n.lng],8);
+      const det=locked?`<div style="margin:4px 0;padding:5px;background:#f3e8ff;color:#581c87;border-radius:4px;font-size:11px;"><b>🔒 Ficha VIP Bloqueada</b><br/>Suscríbete para ver contactos y pliegos.</div>`:`${n.workers?`👷 ${n.workers}<br/>`:''}${n.epp||''}<br/>${n.signal?`📡 ${n.signal}<br/>`:''}`;
+      const base=`<div style="max-width:235px;"><b>${n.name}</b><br/><span style="font-size:11px;color:#475569;">📍 ${n.basin}</span><br/>${det}</div>`;
+      mk.bindPopup(`${base}<b style="color:#0284c7;font-size:11px;">🌤️ Consultando clima...</b>`).openPopup();
+      const w=await fetchWeather(n.lat,n.lng);
+      mk.setPopupContent(`${base}<b style="color:#0284c7;font-size:11px;">${w?`🌤️ ${w}`:'🌤️ Clima: Red lenta'}</b>`);
+    });
+
+    const card=document.createElement('div');card.className='item-card';
+    let pills='';
+    if(n.badge==='verified') pills+=`<span class="pill-tag verified">✅ VERIFICADO PRO</span>`;
+    if(n.badge==='free30') pills+=`<span class="pill-tag free30">🎁 CORTESÍA 30 DÍAS</span>`;
+    if(n.hse) pills+=`<span class="pill-tag hse">🛡️ HSE / API</span>`;
+    if(n.ofac){
+      const cls=n.ofac.includes('24 HORAS')?'h24':(n.ofac.includes('Sin Licencia')?'restricted':'');
+      pills+=`<span class="pill-tag ${cls}">📋 ${n.ofac}</span>`;
+    }
+
+    const bodyHtml=locked?`<div class="vip-lock"><p>🔒 <b>${curLang==='en'?'VIP Protected Data:':'Información Protegida (VIP):'}</b> ${curLang==='en'?'Includes direct procurement contacts, certified crews or tender details.':'Incluye datos de contacto directo, ubicación de procura o detalles de contratación.'}</p><div style="display:flex;gap:5px;flex-wrap:wrap;"><button class="vip-btn" style="padding:4px 8px;font-size:10.5px;" onclick="event.stopPropagation();openFichasModal()">${curLang==='en'?'VIP Key':'Clave VIP'}</button><button class="quote-btn" style="padding:4px 8px;font-size:10.5px;" onclick="event.stopPropagation();window.open('https://wa.me/${WA}?text=Hola%20Jose%20Nery,%20quiero%20desbloquear%20el%20acceso%20VIP%20de%20${encodeURIComponent(n.name)}','_blank')"><i class="fa-brands fa-whatsapp"></i> ${curLang==='en'?'Subscribe':'Suscribirme'}</button></div></div>`:`<div class="item-desc">${n.workers?`<div style="color:#d8b4fe;font-weight:700;margin-bottom:2px;">👷 ${n.workers}</div>`:''}${n.epp||''}${n.signal?`<div class="signal-tag">📡 ${n.signal}</div>`:''}</div>`;
+    card.innerHTML=`<div class="item-head"><h4>${n.name}</h4><span class="cat-badge ${n.category}">${getLabel(n.category)}</span></div><div class="badges-row">${pills}</div><div class="item-meta"><span>📍 ${n.basin}</span>${n.bpd>0?`<span>🛢️ ${Number(n.bpd).toLocaleString()} BPD</span>`:''}</div>${bodyHtml}`;
+    card.onclick=()=>{map.setView([n.lat,n.lng],8);mk.fire('click');};
+    list.appendChild(card);
+  });
+  document.getElementById('kpi-nodes').innerText=filtered.length;
+  document.getElementById('kpi-bpd').innerText=bpd.toLocaleString();
+}
+
+/* Mesa de Procura RFQ + Exportación CSV */
+function openRfqModal(tab){renderRfqList();switchRfqTab(tab);document.getElementById('rfqModal').style.display='flex';}
+function switchRfqTab(t){
+  ['lista','comprar','ofertar'].forEach(k=>{
+    document.getElementById('viewRfq'+k.charAt(0).toUpperCase()+k.slice(1)).style.display=(k===t)?'block':'none';
+    document.getElementById('tabRfq'+k.charAt(0).toUpperCase()+k.slice(1)).classList.toggle('active',k===t);
+  });
+}
+function renderRfqList(){
+  document.getElementById('rfqListContainer').innerHTML=rfqList.map(r=>`
+    <div class="rfq-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span class="rfq-code">${r.code}</span>
+        <span style="font-size:10px;color:#fbbf24;font-weight:700;">⏳ ${r.deadline}</span>
+      </div>
+      <strong style="font-size:12.5px;color:#fff;display:block;margin-bottom:3px;">${r.title}</strong>
+      <div style="font-size:10.5px;color:var(--accent2);margin-bottom:4px;">📍 ${r.zone} · 💵 ${r.pay}</div>
+      <p style="font-size:11px;color:var(--muted);margin-bottom:6px;">${r.detail}</p>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <button class="quote-btn" style="padding:4px 8px;font-size:10.5px;" onclick="prefillOffer('${r.code}')"><i class="fa-solid fa-paper-plane"></i> Cotizar / Ofertar aquí</button>
+        <button style="padding:4px 8px;font-size:10.5px;" onclick="window.open('https://wa.me/${WA}?text=Hola%20Jose%20Nery,%20quiero%20ofertar%20al%20requerimiento%20${r.code}%20(${encodeURIComponent(r.title)})','_blank')"><i class="fa-brands fa-whatsapp"></i> WhatsApp Directo</button>
+      </div>
+    </div>
+  `).join('');
+}
+function exportRfqCsv(){
+  let csv="Codigo RFQ,Requerimiento,Zona de Entrega,Modalidad de Pago,Estado,Detalle Tecnico\n";
+  rfqList.forEach(r=>{
+    csv+=`"${r.code}","${r.title.replace(/"/g,'""')}","${r.zone}","${r.pay}","${r.deadline}","${r.detail.replace(/"/g,'""')}"\n`;
+  });
+  const blob=new Blob(["\uFEFF"+csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=`VenePetrol_Intel_RFQ_${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+}
+function prefillOffer(code){document.getElementById('rSCode').value=code;switchRfqTab('ofertar');}
+function sendRfqWA(t){
+  let msg='';
+  if(t==='comprar'){
+    msg=`Hola José Nery, envío *SOLICITUD DE COMPRA (PROCURA RFQ)* en *VenePetrol Intel*:%0A• *Empresa:* ${document.getElementById('rBCompany').value}%0A• *Contacto:* ${document.getElementById('rBPhone').value}%0A• *Rubro:* ${document.getElementById('rBCat').value}%0A• *Entrega:* ${document.getElementById('rBZone').value}%0A• *Detalle:* ${document.getElementById('rBDesc').value}%0A• *Pago:* ${document.getElementById('rBPay').value}`;
+  }else{
+    msg=`Hola José Nery, envío *OFERTA PROVEEDOR* para *${document.getElementById('rSCode').value}*:%0A• *Proveedor:* ${document.getElementById('rSCompany').value}%0A• *Precio Oferta:* ${document.getElementById('rSPrice').value}%0A• *Entrega/Stock:* ${document.getElementById('rSTime').value}%0A• *Especificaciones:* ${document.getElementById('rSDesc').value}`;
+  }
+  window.open(`https://wa.me/${WA}?text=${msg}`,'_blank');
+}
+
+/* Planillas */
+function openPlanillasModal(tab){switchPlanillaTab(tab);document.getElementById('planillasModal').style.display='flex';}
+function switchPlanillaTab(t){
+  ['talento','equipo','comercio30'].forEach(k=>{
+    document.getElementById('form'+k.charAt(0).toUpperCase()+k.slice(1)).style.display=(k===t)?'block':'none';
+    document.getElementById('tab'+k.charAt(0).toUpperCase()+k.slice(1)).classList.toggle('active',k===t);
+  });
+}
+function sendPlanillaWA(t){
+  let msg='';
+  if(t==='talento'){
+    msg=`Hola José Nery, envío *PLANILLA PERSONAL CERTIFICADO* en *VenePetrol Intel*:%0A• *Nombre/Cuadrilla:* ${document.getElementById('pTName').value}%0A• *Teléfono:* ${document.getElementById('pTPhone').value}%0A• *Especialidad:* ${document.getElementById('pTSpec').value}%0A• *Zona:* ${document.getElementById('pTZone').value}%0A• *Certificaciones:* ${document.getElementById('pTCert').value}%0A• *Opción Sello:* ${document.getElementById('pTVer').value}`;
+  }else if(t==='equipo'){
+    msg=`Hola José Nery, envío *PLANILLA EQUIPO CERTIFICADO* en *VenePetrol Intel*:%0A• *Propietario/Empresa:* ${document.getElementById('pEName').value}%0A• *Teléfono:* ${document.getElementById('pEPhone').value}%0A• *Equipo:* ${document.getElementById('pEType').value}%0A• *Capacidad:* ${document.getElementById('pECap').value}%0A• *Certificaciones:* ${document.getElementById('pECert').value}%0A• *Ubicación:* ${document.getElementById('pEZone').value}`;
+  }else{
+    msg=`Hola José Nery, solicito *1 MES GRATIS EN EL MAPA* (*VenePetrol Intel*):%0A• *Negocio:* ${document.getElementById('pCName').value}%0A• *Rubro:* ${document.getElementById('pCType').value}%0A• *Horario:* ${document.getElementById('pCHours').value}%0A• *WhatsApp:* ${document.getElementById('pCPhone').value}%0A• *Dirección/Ruta:* ${document.getElementById('pCZone').value}%0A• *Servicios:* ${document.getElementById('pCDesc').value}`;
+  }
+  window.open(`https://wa.me/${WA}?text=${msg}`,'_blank');
+}
+
+/* Calculadora Procura BCV/USDT + PDF Ejecutivo + Conversor Unidades Petroleras */
+function switchCalcTab(t){
+  document.getElementById('viewCalcBudget').style.display=(t==='budget')?'block':'none';
+  document.getElementById('viewCalcUnits').style.display=(t==='units')?'block':'none';
+  document.getElementById('tabCalcBudget').classList.toggle('active',t==='budget');
+  document.getElementById('tabCalcUnits').classList.toggle('active',t==='units');
+}
+
+function convOil(src){
+  if(src==='bbl'){const v=Number(document.getElementById('uBbl').value)||0;document.getElementById('uM3').value=(v*0.158987).toFixed(2);}
+  if(src==='m3'){const v=Number(document.getElementById('uM3').value)||0;document.getElementById('uBbl').value=(v/0.158987).toFixed(2);}
+  if(src==='psi'){const v=Number(document.getElementById('uPsi').value)||0;document.getElementById('uBar').value=(v*0.0689476).toFixed(2);}
+  if(src==='bar'){const v=Number(document.getElementById('uBar').value)||0;document.getElementById('uPsi').value=(v/0.0689476).toFixed(2);}
+  if(src==='ft'){const v=Number(document.getElementById('uFt').value)||0;document.getElementById('uMt').value=(v*0.3048).toFixed(2);}
+  if(src==='mt'){const v=Number(document.getElementById('uMt').value)||0;document.getElementById('uFt').value=(v/0.3048).toFixed(2);}
+  if(src==='gal'){const v=Number(document.getElementById('uGal').value)||0;document.getElementById('uLit').value=(v*3.78541).toFixed(2);}
+  if(src==='lit'){const v=Number(document.getElementById('uLit').value)||0;document.getElementById('uGal').value=(v/3.78541).toFixed(2);}
+}
+
+async function fetchLiveRates(){
+  const st=document.getElementById('rateStatus');
+  st.innerText="🔄 Actualizando tasas BCV y USDT en vivo...";
+  st.style.color="#38bdf8";
+  try{
+    const [rOf,rPa]=await Promise.all([
+      fetch('https://ve.dolarapi.com/v1/dolares/oficial'),
+      fetch('https://ve.dolarapi.com/v1/dolares/paralelo')
+    ]);
+    const dOf=await rOf.json();
+    const dPa=await rPa.json();
+    if(dOf&&dOf.promedio){
+      document.getElementById('cBcv').value=Number(dOf.promedio).toFixed(2);
+      localStorage.setItem('vp_last_bcv',Number(dOf.promedio).toFixed(2));
+    }
+    if(dPa&&dPa.promedio){
+      document.getElementById('cUsdt').value=Number(dPa.promedio).toFixed(2);
+      localStorage.setItem('vp_last_usdt',Number(dPa.promedio).toFixed(2));
+    }
+    const hora=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+    st.innerText=`✅ Tasas actualizadas en vivo (${hora}) · Editables`;
+    st.style.color="#10b981";
+  }catch(e){
+    const lb=localStorage.getItem('vp_last_bcv');
+    const lu=localStorage.getItem('vp_last_usdt');
+    if(lb) document.getElementById('cBcv').value=lb;
+    if(lu) document.getElementById('cUsdt').value=lu;
+    st.innerText="⚠️ Modo offline/campo: usando última tasa guardada (editable)";
+    st.style.color="#f59e0b";
+  }
+  runCalc();
+}
+
+function openCalcModal(tab){
+  document.getElementById('calcModal').style.display='flex';
+  switchCalcTab(tab||'budget');
+  runCalc();
+  fetchLiveRates();
+}
+function runCalc(){
+  const unit=Number(document.getElementById('cUnitCost').value)||0;
+  const qty=Number(document.getElementById('cQty').value)||0;
+  const margin=Number(document.getElementById('cMargin').value)||0;
+  const ivaPct=Number(document.getElementById('cIva').value)||0;
+  const bcv=Number(document.getElementById('cBcv').value)||1;
+  const usdt=Number(document.getElementById('cUsdt').value)||1;
+
+  const subBase=unit*qty;
+  const subConMargen=subBase*(1+(margin/100));
+  const totalUsd=subConMargen*(1+(ivaPct/100));
+  const unitFinalUsd=qty>0?(totalUsd/qty):0;
+  const totalBs=totalUsd*bcv;
+  const equivUsdt=totalBs/usdt;
+
+  document.getElementById('calcOutput').innerHTML=`
+    <div style="font-size:11px;color:var(--muted);">Precio Unitario Venta: <strong style="color:#fff;">$${unitFinalUsd.toFixed(2)} USD</strong></div>
+    <div style="font-size:14px;font-weight:800;color:#10b981;margin:4px 0;">Total Presupuesto: $${totalUsd.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})} USD</div>
+    <div style="font-size:12px;color:#38bdf8;">🇻🇪 En Bolívares (Tasa BCV ${bcv}): <strong>Bs. ${totalBs.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})}</strong></div>
+    <div style="font-size:11.5px;color:#fbbf24;margin-top:2px;">₮ Equivalente USDT (Tasa ${usdt}): <strong>${equivUsdt.toFixed(2)} USDT</strong></div>
+  `;
+  return {totalUsd,totalBs,equivUsdt,unitFinalUsd,bcv,usdt,ivaPct};
+}
+
+function printExecutiveQuote(){
+  const r=runCalc();
+  const conc=document.getElementById('cConcept').value||'Suministro Industrial / Servicio Petrolero B2B';
+  const qty=document.getElementById('cQty').value||1;
+  const fecha=new Date().toLocaleDateString('es-VE');
+  const w=window.open('','_blank');
+  w.document.write(`
+    <html><head><title>Cotización Ejecutiva - VenePetrol Intel B2B</title>
+    <style>body{font-family:Arial,sans-serif;padding:30px;color:#0f172a} .head{border-bottom:3px solid #f59e0b;padding-bottom:12px;margin-bottom:20px;display:flex;justify-content:space-between} table{width:100%;border-collapse:collapse;margin:18px 0} th,td{border:1px solid #cbd5e1;padding:10px;text-align:left} th{background:#f1f5f9} .tot{background:#f8fafc;padding:14px;border-left:4px solid #10b981}</style>
+    </head><body>
+    <div class="head"><div><h2 style="margin:0;">VenePetrol Intel B2B</h2><small>Energy Logistics & Industrial Procurement · Venezuela</small></div><div style="text-align:right;"><b>FECHA:</b> ${fecha}<br/><small>Email: ${CORP_EMAIL}<br/>Tel: +58 412-1788766</small></div></div>
+    <h3>PROFORMA / EXECUTIVE QUOTATION</h3>
+    <table><tr><th>Descripción / Concepto</th><th>Cantidad</th><th>Unitario ($ USD)</th><th>Total ($ USD)</th></tr>
+    <tr><td>${conc}</td><td>${qty}</td><td>$${r.unitFinalUsd.toFixed(2)}</td><td><b>$${r.totalUsd.toFixed(2)}</b></td></tr></table>
+    <div class="tot">
+      <p><b>Total Dólares (USD):</b> $${r.totalUsd.toFixed(2)} (IVA: ${r.ivaPct}%)</p>
+      <p><b>Total Bolívares (Tasa Oficial BCV ${r.bcv}):</b> Bs. ${r.totalBs.toFixed(2)}</p>
+      <p><b>Referencia USDT (Tasa ${r.usdt}):</b> ${r.equivUsdt.toFixed(2)} USDT</p>
+    </div>
+    <p style="font-size:11px;color:#64748b;margin-top:24px;">Documento generado desde VenePetrol Intel B2B. Sujeto a disponibilidad de inventario y variación cambiaria oficial BCV.</p>
+    <script>window.print();<\/script></body></html>
+  `);
+  w.document.close();
+}
+
+function sendCalcWA(){
+  const r=runCalc();
+  const conc=document.getElementById('cConcept').value||'Suministro / Servicio Petrolero';
+  const qty=document.getElementById('cQty').value||1;
+  const msg=`Hola José Nery, te comparto cálculo desde *VenePetrol Intel*:%0A• *Concepto:* ${conc} (Cant: ${qty})%0A• *Unitario:* $${r.unitFinalUsd.toFixed(2)} USD%0A• *Total USD:* $${r.totalUsd.toFixed(2)}%0A• *Total Bs (BCV):* Bs. ${r.totalBs.toFixed(2)}%0A• *Ref. USDT:* ${r.equivUsdt.toFixed(2)} USDT`;
+  window.open(`https://wa.me/${WA}?text=${msg}`,'_blank');
+}
+
+function openFichasModal(){renderFichasList();document.getElementById('fichasModal').style.display='flex';}
+function openOfacModal(){document.getElementById('ofacModal').style.display='flex';}
+function openRupModal(){document.getElementById('rupModal').style.display='flex';}
+function openProModal(){document.getElementById('proModal').style.display='flex';}
+function renderFichasList(){
+  document.getElementById('vipUnlockBar').style.display=isVIP?'none':'block';
+  document.getElementById('fichasContainer').innerHTML=nodes.filter(n=>n.vip).map(c=>!isVIP?`<div class="ficha-item"><strong>${c.name}</strong><div style="font-size:10.5px;color:var(--muted);margin:3px 0;">📍 ${c.basin}</div><div style="font-size:10.5px;color:#e9d5ff;">🔒 Bloqueado. Activa clave VIP arriba.</div></div>`:`<div class="ficha-item" style="border-color:var(--vip);"><strong>${c.name}</strong><div style="font-size:10.5px;color:var(--accent2);margin:3px 0;">📍 ${c.basin} · 👷 ${c.workers||''}</div><p style="font-size:11px;">${c.epp}</p></div>`).join('');
+}
+
+function openAdmin(){
+  if(prompt("Clave Admin:")!=="ADMIN2026")return alert("Clave incorrecta");
+  document.getElementById('inVipPass').value=vipPass;
+  document.getElementById('inRadarText').value=document.getElementById('radarText').innerText;
+  document.getElementById('inSpTitle').value=document.getElementById('spTitle').innerText;
+  document.getElementById('inSpDesc').value=document.getElementById('spDesc').innerText;
+  document.getElementById('inNewRfq').value='';
+  document.getElementById('selNode').innerHTML=`<option value="new">[ + CREAR NUEVO PUNTO ]</option>`+nodes.map(n=>`<option value="${n.id}">${n.name}</option>`).join('');
+  loadNodeData('new');document.getElementById('adminModal').style.display='flex';
+}
+function loadNodeData(v){
+  const isN=v==='new';document.getElementById('btnDelete').style.display=isN?'none':'block';
+  const f=isN?{name:'',operator:'',category:'petroleo',basin:'',lat:8.85,lng:-64.7,badge:'verified',ofac:'HSE / API Certified',workers:'',signal:'',epp:''}:nodes.find(x=>x.id==v);
+  if(f){
+    document.getElementById('inNodeName').value=f.name||'';
+    document.getElementById('inNodeOp').value=f.operator||'';
+    document.getElementById('inNodeCategory').value=f.category||'petroleo';
+    document.getElementById('inNodeBasin').value=f.basin||'';
+    document.getElementById('inNodeLat').value=f.lat||8.85;
+    document.getElementById('inNodeLng').value=f.lng||-64.7;
+    document.getElementById('inNodeBadge').value=f.badge||'none';
+    document.getElementById('inNodeOfac').value=f.ofac||'';
+    document.getElementById('inNodeWorkers').value=f.workers||'';
+    document.getElementById('inNodeSignal').value=f.signal||'';
+    document.getElementById('inNodeEpp').value=f.epp||'';
+  }
+}
+function saveAdmin(){
+  const nv=document.getElementById('inVipPass').value.trim();if(nv){vipPass=nv;localStorage.setItem('vp_vip_pass',vipPass);}
+  const rt=document.getElementById('inRadarText').value;document.getElementById('radarText').innerText=rt;localStorage.setItem('vp_radar_v9',rt);
+  document.getElementById('spTitle').innerText=document.getElementById('inSpTitle').value;
+  document.getElementById('spDesc').innerText=document.getElementById('inSpDesc').value;
+
+  const newRfqRaw=document.getElementById('inNewRfq').value.trim();
+  if(newRfqRaw){
+    const parts=newRfqRaw.split('|').map(s=>s.trim());
+    rfqList.unshift({
+      code:parts[0]||`RFQ-2026-${Math.floor(100+Math.random()*899)}`,
+      title:parts[1]||newRfqRaw,
+      zone:parts[2]||"Faja Petrolífera del Orinoco",
+      pay:parts[3]||"USD / USDT / BCV",
+      deadline:"Cierre: Activo",
+      detail:"Requerimiento publicado desde la Central VenePetrol Intel."
+    });
+    localStorage.setItem('vp_rfq_list_v1',JSON.stringify(rfqList));
+  }
+
+  const v=document.getElementById('selNode').value,cat=document.getElementById('inNodeCategory').value,nm=document.getElementById('inNodeName').value.trim();
+  if(nm){
+    const isVipCat=(cat==='internacional'||cat==='nacional'||cat==='talento'||cat==='licitaciones');
+    const bVal=document.getElementById('inNodeBadge').value;
+    const ofVal=document.getElementById('inNodeOfac').value;
+    const isHse=ofVal.toUpperCase().includes('HSE')||ofVal.toUpperCase().includes('API')||ofVal.toUpperCase().includes('OSHA');
+    const d={name:nm,operator:document.getElementById('inNodeOp').value,category:cat,badge:(bVal==='none'?null:bVal),hse:isHse,basin:document.getElementById('inNodeBasin').value||"Venezuela",lat:Number(document.getElementById('inNodeLat').value),lng:Number(document.getElementById('inNodeLng').value),bpd:0,ofac:ofVal,workers:document.getElementById('inNodeWorkers').value,signal:document.getElementById('inNodeSignal').value,vip:isVipCat,epp:document.getElementById('inNodeEpp').value};
+    if(v==='new'){d.id=Date.now();nodes.push(d);}else{const i=nodes.findIndex(x=>x.id==v);if(i>-1){d.id=Number(v);nodes[i]=d;}}
+    localStorage.setItem('vp_nodes_master_v9',JSON.stringify(nodes));
+  }
+  render();closeModals();
+}
+function deleteNode(){const v=document.getElementById('selNode').value;if(v!=='new'&&confirm("¿Eliminar?")){nodes=nodes.filter(x=>x.id!=v);localStorage.setItem('vp_nodes_master_v9',JSON.stringify(nodes));render();closeModals();}}
+function installPWA(){alert("📲 En Chrome Android: toca los 3 puntos (⋮) arriba a la derecha → 'Agregar a la pantalla principal'.\nEn iPhone Safari: toca 'Compartir' → 'Agregar a inicio'.");}
+function closeModals(){document.querySelectorAll('.modal-backdrop').forEach(m=>m.style.display='none');}
+
+const savedRadar=localStorage.getItem('vp_radar_v9');
+if(savedRadar)document.getElementById('radarText').innerText=savedRadar;
+applyLang();
+render();
+</script>
+</body>
+</html>
