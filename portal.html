@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<meta name="theme-color" content="#0b0f17"/>
+<title>VenePetrol Intel B2B · Energy Intelligence, Procurement RFQ, Compliance & Logistics</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+<style>
+:root{--bg:#0b0f17;--panel:#131a26;--panel2:#1a2333;--border:#263248;--accent:#f59e0b;--accent2:#38bdf8;--vip:#a855f7;--text:#f1f5f9;--muted:#94a3b8;--success:#10b981;--danger:#ef4444}
+*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,sans-serif;scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);line-height:1.55;overflow-x:hidden}
+a{text-decoration:none}
+
+/* Bandera de Venezuela en Movimiento (CSS + SVG) */
+.ve-flag-wrap{display:inline-flex;align-items:center;justify-content:center;perspective:300px;vertical-align:middle}
+.ve-flag{width:34px;height:22px;border-radius:3px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.55);transform-origin:left center;animation:flagWave 2.4s ease-in-out infinite;position:relative;border:1px solid rgba(255,255,255,.18)}
+.ve-flag.lg{width:54px;height:36px;border-radius:4px}
+.ve-flag::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(255,255,255,.22) 0%,rgba(0,0,0,.15) 35%,rgba(255,255,255,.25) 65%,rgba(0,0,0,.2) 100%);background-size:200% 100%;animation:flagShimmer 2.4s linear infinite;pointer-events:none}
+@keyframes flagWave{
+  0%,100%{transform:rotateY(0deg) skewY(0deg) scaleX(1)}
+  25%{transform:rotateY(14deg) skewY(-2.5deg) scaleX(.97)}
+  50%{transform:rotateY(-8deg) skewY(2deg) scaleX(1.01)}
+  75%{transform:rotateY(12deg) skewY(-2deg) scaleX(.98)}
+}
+@keyframes flagShimmer{
+  0%{background-position:200% 0}
+  100%{background-position:0% 0}
+}
+
+/* Navbar */
+nav{background:rgba(19,26,38,.96);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);padding:11px 18px;position:sticky;top:0;z-index:1000;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px}
+.logo{display:flex;align-items:center;gap:8px;font-size:18px;font-weight:800;color:#fff}
+.logo span{color:var(--accent)}
+.logo-tag{background:var(--accent);color:#000;font-size:10px;font-weight:800;padding:2px 6px;border-radius:4px}
+.nav-links{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.nav-links a{color:var(--muted);font-size:12.5px;font-weight:600}
+.nav-links a:hover{color:var(--accent)}
+.btn{padding:9px 15px;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;border:1px solid transparent;transition:transform .15s}
+.btn:hover{transform:translateY(-1px)}
+.btn-accent{background:var(--accent);color:#000}
+.btn-green{background:var(--success);color:#000}
+.btn-vip{background:linear-gradient(135deg,#9333ea,#6b21a8);color:#fff}
+.btn-blue{background:#0284c7;color:#fff;border-color:#38bdf8}
+.btn-outline{background:var(--panel2);color:#fff;border-color:var(--border)}
+.btn-lang{background:#1e293b;color:var(--accent2);border-color:var(--accent2);padding:7px 11px;font-size:12px}
+
+/* Cinta de Actividad y Benchmarks Energéticos en Vivo (Ticker) */
+.ticker-bar{background:#090d14;border-bottom:1px solid var(--border);padding:7px 0;overflow:hidden;white-space:nowrap;position:relative;font-size:12px}
+.ticker-track{display:inline-block;padding-left:100%;animation:tickerMove 38s linear infinite}
+.ticker-bar:hover .ticker-track{animation-play-state:paused}
+.ticker-item{display:inline-flex;align-items:center;gap:6px;margin-right:32px;color:var(--text)}
+.t-badge{background:rgba(16,185,129,.18);color:#6ee7b7;font-weight:800;font-size:10px;padding:1px 6px;border-radius:4px}
+.t-badge.warn{background:rgba(245,158,11,.2);color:#fbbf24}
+.t-badge.oil{background:rgba(56,189,248,.18);color:#7dd3fc}
+@keyframes tickerMove{0%{transform:translateX(0)}100%{transform:translateX(-100%)}}
+
+/* Hero */
+.hero{padding:42px 20px 34px;max-width:1120px;margin:0 auto;text-align:center}
+.hero-badge-row{display:inline-flex;align-items:center;gap:10px;background:rgba(245,158,11,.14);border:1px solid rgba(245,158,11,.4);color:#fbbf24;font-size:11.5px;font-weight:700;padding:6px 14px;border-radius:24px;margin-bottom:14px}
+.hero h1{font-size:clamp(26px,4.5vw,44px);font-weight:900;line-height:1.18;margin-bottom:14px}
+.hero h1 span{color:var(--accent)}
+.hero p{color:var(--muted);font-size:clamp(14px,2vw,17px);max-width:760px;margin:0 auto 22px}
+.hero-cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:28px}
+
+/* Stats Strip */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;max-width:960px;margin:0 auto}
+.stat-box{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:15px}
+.stat-num{font-size:25px;font-weight:900;color:var(--accent2)}
+.stat-lbl{font-size:12px;color:var(--muted);margin-top:2px}
+
+/* Radar de Zonas Calientes de Demanda */
+.heat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin-top:22px;text-align:left}
+.heat-card{background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:9px;padding:13px}
+.heat-lvl{font-size:10px;font-weight:800;text-transform:uppercase;padding:2px 6px;border-radius:4px;background:rgba(239,68,68,.2);color:#fca5a5;float:right}
+.heat-lvl.med{background:rgba(245,158,11,.2);color:#fde047}
+
+/* Sections */
+section{padding:42px 20px;max-width:1120px;margin:0 auto}
+.sec-head{text-align:center;margin-bottom:26px}
+.sec-head h2{font-size:clamp(22px,3.2vw,30px);font-weight:800;margin-bottom:6px}
+.sec-head p{color:var(--muted);font-size:14px;max-width:660px;margin:0 auto}
+
+/* Simulador Interactivo de ROI */
+.roi-box{background:linear-gradient(145deg,#131a26,#0e1522);border:1px solid var(--accent);border-radius:14px;padding:24px;max-width:900px;margin:0 auto}
+.roi-tabs{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap}
+.roi-tab{flex:1;min-width:210px;padding:10px;border-radius:8px;background:var(--panel2);border:1px solid var(--border);color:var(--text);font-weight:700;font-size:13px;cursor:pointer;text-align:center}
+.roi-tab.active{background:var(--accent);color:#000;border-color:var(--accent)}
+.roi-layout{display:grid;grid-template-columns:1.1fr .9fr;gap:20px;align-items:center}
+@media(max-width:720px){.roi-layout{grid-template-columns:1fr}}
+.slider-group{margin-bottom:16px}
+.slider-group label{display:flex;justify-content:space-between;font-size:13px;color:var(--text);font-weight:600;margin-bottom:6px}
+.slider-group input[type=range]{width:100%;accent-color:var(--accent);cursor:pointer;height:6px}
+.roi-result{background:#090d14;border:1px solid var(--success);border-radius:11px;padding:18px;text-align:center}
+.roi-big{font-size:32px;font-weight:900;color:var(--success);margin:4px 0}
+
+/* Diagnóstico Rápido RUP / RNC / OFAC */
+.diag-box{background:var(--panel);border:1px solid var(--vip);border-radius:14px;padding:24px;max-width:900px;margin:0 auto}
+.diag-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:16px}
+.diag-out{background:var(--panel2);border-radius:10px;padding:16px;border-left:4px solid var(--accent2)}
+
+/* Corporate Governance & FCPA / OFAC Compliance */
+.comp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.comp-card{background:var(--panel);border:1px solid var(--border);border-top:3px solid var(--accent2);border-radius:11px;padding:18px}
+.comp-card h3{font-size:15px;color:#fff;margin-bottom:6px;display:flex;align-items:center;gap:7px}
+.comp-card p{font-size:12.5px;color:var(--muted)}
+
+/* Executive Briefing Scheduler (Houston / Caracas EST) */
+.exec-box{background:linear-gradient(135deg,#0f172a,#131a26);border:1px solid var(--accent2);border-radius:14px;padding:24px;max-width:860px;margin:0 auto}
+.exec-badge{display:inline-block;background:rgba(56,189,248,.16);color:#7dd3fc;font-size:11px;font-weight:800;padding:3px 9px;border-radius:5px;margin-bottom:8px}
+
+/* Boletín Petrolero */
+.news-toolbar{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--border);padding:10px 14px;border-radius:10px;margin-bottom:16px}
+.news-tabs{display:flex;gap:6px;flex-wrap:wrap}
+.ntab{background:var(--panel2);color:var(--text);border:1px solid var(--border);padding:5px 11px;border-radius:20px;font-size:11.5px;font-weight:600;cursor:pointer}
+.ntab.active{background:var(--accent);color:#000;border-color:var(--accent);font-weight:700}
+.news-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:15px}
+.news-card{background:var(--panel);border:1px solid var(--border);border-radius:11px;padding:18px;display:flex;flex-direction:column;justify-content:space-between;transition:border-color .15s}
+.news-card:hover{border-color:var(--accent2)}
+.news-meta{display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:8px;font-size:11px}
+.news-tag{background:rgba(56,189,248,.15);color:#7dd3fc;font-weight:700;padding:2px 8px;border-radius:4px;text-transform:uppercase;font-size:10px}
+.news-tag.lic{background:rgba(16,185,129,.18);color:#6ee7b7}
+.news-tag.ofac{background:rgba(168,85,247,.18);color:#d8b4fe}
+.news-card h3{font-size:15px;color:#fff;margin-bottom:7px;line-height:1.35}
+.news-card p{font-size:12.5px;color:var(--muted);margin-bottom:12px}
+.news-foot{display:flex;justify-content:space-between;align-items:center;font-size:11.5px;border-top:1px solid var(--border);padding-top:9px}
+
+/* Features Grid */
+.grid-3{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px}
+.card:hover{border-color:var(--accent2)}
+.card-icon{width:42px;height:42px;border-radius:9px;background:var(--panel2);display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:12px}
+.card h3{font-size:16px;margin-bottom:6px;color:#fff}
+.card p{font-size:13px;color:var(--muted)}
+
+/* Pricing */
+.pricing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+.price-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:22px;display:flex;flex-direction:column;justify-content:space-between}
+.price-card.featured{border-color:var(--vip);background:linear-gradient(180deg,#1a162b,#131a26)}
+.price-tag{font-size:11px;font-weight:800;text-transform:uppercase;margin-bottom:6px;display:block}
+.price-val{font-size:28px;font-weight:900;color:#fff;margin:8px 0}
+.price-val small{font-size:13px;color:var(--muted);font-weight:500}
+.price-list{list-style:none;margin:14px 0 20px;display:flex;flex-direction:column;gap:8px;font-size:12.5px;color:var(--text)}
+.price-list li i{color:var(--success);margin-right:6px}
+
+/* Contact / Lead Box */
+.contact-box{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:24px;max-width:720px;margin:0 auto}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:600px){.form-row{grid-template-columns:1fr}}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
+.field input,.field select,.field textarea{width:100%;background:var(--bg);border:1px solid var(--border);color:#fff;padding:10px;border-radius:7px;font-size:13.5px}
+
+/* Footer */
+footer{border-top:1px solid var(--border);background:#080b11;padding:28px 20px;text-align:center;color:var(--muted);font-size:12px;margin-top:30px}
+.disclaimer{max-width:860px;margin:12px auto 0;padding-top:12px;border-top:1px solid #1e293b;font-size:11px;color:#64748b;line-height:1.5}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="#" class="logo">
+    <div class="ve-flag-wrap" title="República Bolivariana de Venezuela">
+      <div class="ve-flag">
+        <svg viewBox="0 0 90 60" width="100%" height="100%" preserveAspectRatio="none">
+          <rect width="90" height="20" y="0" fill="#FCE300"/>
+          <rect width="90" height="20" y="20" fill="#0033A0"/>
+          <rect width="90" height="20" y="40" fill="#EF3340"/>
+          <g fill="#FFFFFF">
+            <circle cx="29" cy="34" r="1.4"/><circle cx="32.5" cy="29.5" r="1.4"/>
+            <circle cx="37.5" cy="26.5" r="1.4"/><circle cx="42.5" cy="25" r="1.4"/>
+            <circle cx="47.5" cy="25" r="1.4"/><circle cx="52.5" cy="26.5" r="1.4"/>
+            <circle cx="57.5" cy="29.5" r="1.4"/><circle cx="61" cy="34" r="1.4"/>
+          </g>
+        </svg>
+      </div>
+    </div>
+    VenePetrol <span>Intel</span> <span class="logo-tag">B2B</span>
+  </a>
+  <div class="nav-links">
+    <a href="#simulador" data-i18n="navRoi">Simulador ROI</a>
+    <a href="#compliance" data-i18n="navComp">Compliance FCPA/OFAC</a>
+    <a href="#briefing" data-i18n="navBrief">Executive Briefing</a>
+    <a href="#boletin" data-i18n="navNews">Boletín</a>
+    <button class="btn btn-lang" id="langBtn" onclick="toggleLang()"><i class="fa-solid fa-globe"></i> EN</button>
+    <a href="index.html" class="btn btn-accent"><i class="fa-solid fa-map-location-dot"></i> <span data-i18n="navApp">Abrir App en Vivo</span></a>
+  </div>
+</nav>
+
+<!-- CINTA DE BENCHMARKS ENERGÉTICOS (WTI / BRENT / HENRY HUB) & TASAS BCV / USDT -->
+<div class="ticker-bar">
+  <div class="ticker-track" id="tickerTrack">
+    <span class="ticker-item"><span class="t-badge oil">WTI CRUDE</span> <strong>$68.40 / bbl</strong></span>
+    <span class="ticker-item"><span class="t-badge oil">BRENT</span> <strong>$71.85 / bbl</strong></span>
+    <span class="ticker-item"><span class="t-badge oil">HENRY HUB GAS</span> <strong>$2.95 / MMBtu</strong></span>
+    <span class="ticker-item"><span class="t-badge">BCV HOY</span> <strong id="tkBcv">Bs. --,-- / USD</strong></span>
+    <span class="ticker-item"><span class="t-badge warn">REF. USDT</span> <strong id="tkUsdt">Bs. --,-- / USDT</strong></span>
+    <span class="ticker-item"><span class="t-badge">RFQ-2026-041</span> 500 High-Top Oil Boots + 300 FR Coveralls (El Tigre / San Tomé)</span>
+    <span class="ticker-item"><span class="t-badge warn">OFAC GL 50A / 48D</span> Active Compliance Framework Verified</span>
+  </div>
+</div>
+
+<header class="hero">
+  <div class="hero-badge-row">
+    <div class="ve-flag-wrap">
+      <div class="ve-flag">
+        <svg viewBox="0 0 90 60" width="100%" height="100%" preserveAspectRatio="none">
+          <rect width="90" height="20" y="0" fill="#FCE300"/>
+          <rect width="90" height="20" y="20" fill="#0033A0"/>
+          <rect width="90" height="20" y="40" fill="#EF3340"/>
+          <g fill="#FFFFFF">
+            <circle cx="29" cy="34" r="1.4"/><circle cx="32.5" cy="29.5" r="1.4"/>
+            <circle cx="37.5" cy="26.5" r="1.4"/><circle cx="42.5" cy="25" r="1.4"/>
+            <circle cx="47.5" cy="25" r="1.4"/><circle cx="52.5" cy="26.5" r="1.4"/>
+            <circle cx="57.5" cy="29.5" r="1.4"/><circle cx="61" cy="34" r="1.4"/>
+          </g>
+        </svg>
+      </div>
+    </div>
+    <span data-i18n="heroPill">VENEZUELA · ORINOCO OIL BELT · EASTERN BASIN · WESTERN MARACAIBO</span>
+  </div>
+  <h1 data-i18n="heroTitle">Inteligencia Operativa, <span>Procura RFQ</span> y Logística en Ruta para la Industria Petrolera</h1>
+  <p data-i18n="heroSub">Conectamos operadoras internacionales, contratistas nacionales, proveedores HSE/API y flotas pesadas en una plataforma B2B auditada con mapa satelital, tasas BCV/USDT en vivo y cumplimiento OFAC/FCPA.</p>
+  <div class="hero-cta">
+    <a href="index.html" class="btn btn-accent" style="padding:12px 22px;font-size:14.5px;"><i class="fa-solid fa-rocket"></i> <span data-i18n="ctaApp">Entrar a la App Interactiva</span></a>
+    <a href="#briefing" class="btn btn-blue" style="padding:12px 22px;font-size:14.5px;"><i class="fa-solid fa-calendar-check"></i> <span data-i18n="ctaBrief">Agendar Reunión Ejecutiva</span></a>
+    <a href="#simulador" class="btn btn-green" style="padding:12px 22px;font-size:14.5px;"><i class="fa-solid fa-chart-line"></i> <span data-i18n="ctaRoi">Calcular Retorno (ROI)</span></a>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-box"><div class="stat-num">64</div><div class="stat-lbl" data-i18n="st1">Operadoras & Contratistas</div></div>
+    <div class="stat-box"><div class="stat-num">28+</div><div class="stat-lbl" data-i18n="st2">Campos & Frentes Taladro</div></div>
+    <div class="stat-box"><div class="stat-num">FCPA</div><div class="stat-lbl" data-i18n="st3">Estándar Compliance & OFAC</div></div>
+    <div class="stat-box"><div class="stat-num">24/7</div><div class="stat-lbl" data-i18n="st4">Tasas BCV / USDT & Clima</div></div>
+  </div>
+
+  <!-- RADAR DE ZONAS CALIENTES DE DEMANDA -->
+  <div class="heat-grid">
+    <div class="heat-card">
+      <span class="heat-lvl">🔥 HIGH DEMAND</span>
+      <strong style="font-size:13.5px;color:#fff;">Bloque Junín (Pariaguán – Zuata)</strong>
+      <p style="font-size:11.5px;color:var(--muted);margin-top:4px;">Demanda activa: Caucheras 24h, paradores/viandas de guardia, flotas 4x4 HSE y soldadores 6G.</p>
+    </div>
+    <div class="heat-card">
+      <span class="heat-lvl">🔥 HIGH DEMAND</span>
+      <strong style="font-size:13.5px;color:#fff;">Ayacucho (El Tigre – San Tomé)</strong>
+      <p style="font-size:11.5px;color:var(--muted);margin-top:4px;">Demanda activa: Botas ANSI/COVENIN, bragas ignífugas, talleres diésel pesado y grúas/cama baja.</p>
+    </div>
+    <div class="heat-card">
+      <span class="heat-lvl med">⚡ ACTIVE</span>
+      <strong style="font-size:13.5px;color:#fff;">Carabobo (Morichal – Temblador)</strong>
+      <p style="font-size:11.5px;color:var(--muted);margin-top:4px;">Demanda activa: Mangueras hidráulicas, repuestos Caterpillar/Cummins y camiones vacuum RACDA.</p>
+    </div>
+    <div class="heat-card">
+      <span class="heat-lvl med">⚡ ACTIVE</span>
+      <strong style="font-size:13.5px;color:#fff;">Occidente (Boscán & COL Zulia)</strong>
+      <p style="font-size:11.5px;color:var(--muted);margin-top:4px;">Demanda activa: Equipos workover, chalecos SOLAS, calzado antideslizante y taller naval/diésel.</p>
+    </div>
+  </div>
+</header>
+
+<!-- SIMULADOR INTERACTIVO DE RETORNO DE INVERSIÓN (ROI) -->
+<section id="simulador">
+  <div class="sec-head">
+    <h2 data-i18n="roiTitle">📈 Simulador Interactivo de Ganancia y Retorno (ROI)</h2>
+    <p data-i18n="roiSub">Mueve los controles con tus propios números y comprueba cuánto factura tu negocio o cuánto ahorra tu empresa en VenePetrol Intel.</p>
+  </div>
+  <div class="roi-box">
+    <div class="roi-tabs">
+      <button class="roi-tab active" id="rtabComercio" onclick="setRoiMode('comercio')">🔧 Comercio en Ruta (Taller / Cauchera / Parador)</button>
+      <button class="roi-tab" id="rtabEmpresa" onclick="setRoiMode('empresa')">🏭 Contratista / Proveedor EPP y Flotas</button>
+    </div>
+
+    <div class="roi-layout" id="roiComercioView">
+      <div>
+        <div class="slider-group">
+          <label><span>Vehículos pesados / cuadrillas atendidas extra al mes:</span> <strong id="lblClients" style="color:var(--accent)">8 clientes</strong></label>
+          <input type="range" id="rngClients" min="2" max="40" value="8" oninput="calcRoi()"/>
+        </div>
+        <div class="slider-group">
+          <label><span>Ticket promedio por servicio (almuerzos, despinche, mecánica):</span> <strong id="lblTicket" style="color:var(--accent2)">$35 USD</strong></label>
+          <input type="range" id="rngTicket" min="10" max="250" step="5" value="35" oninput="calcRoi()"/>
+        </div>
+        <p style="font-size:11.5px;color:var(--muted);">* Primeros <b>30 días GRATIS</b> en el mapa. Luego solo <b>$25/mes</b> con Sello Verificado Pro.</p>
+      </div>
+      <div class="roi-result">
+        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:700;">Ingresos Adicionales Estimados</div>
+        <div class="roi-big" id="resComIncome">+$280 / mes</div>
+        <div id="resComNet" style="font-size:12.5px;color:#fff;margin-bottom:10px;">Ganancia neta tras pagar $25/mes: <b>+$255 USD</b> (Retorno 11.2x)</div>
+        <a href="index.html" class="btn btn-green" style="width:100%;justify-content:center;">Activar mi 1 Mes Gratis Ahora</a>
+      </div>
+    </div>
+
+    <div class="roi-layout" id="roiEmpresaView" style="display:none;">
+      <div>
+        <div class="slider-group">
+          <label><span>Compras / Licitaciones gestionadas al mes (EPP, flotas, repuestos):</span> <strong id="lblBuyVol" style="color:var(--accent)">$4,000 USD</strong></label>
+          <input type="range" id="rngBuyVol" min="1000" max="30000" step="500" value="4000" oninput="calcRoi()"/>
+        </div>
+        <div class="slider-group">
+          <label><span>Ahorro promedio al cotizar directo sin sobrecostos de cadena (~8%):</span> <strong id="lblSavePct" style="color:var(--accent2)">8% directo</strong></label>
+          <input type="range" id="rngSavePct" min="4" max="15" value="8" oninput="calcRoi()"/>
+        </div>
+        <p style="font-size:11.5px;color:var(--muted);">* Membresía VIP Empresas & Procura: <b>$35/mes</b> con acceso total a contactos y RFQ.</p>
+      </div>
+      <div class="roi-result" style="border-color:var(--vip);">
+        <div style="font-size:11px;color:#d8b4fe;text-transform:uppercase;font-weight:700;">Ahorro / Margen Operativo Mensual</div>
+        <div class="roi-big" id="resEmpSave" style="color:#d8b4fe;">+$320 / mes</div>
+        <div id="resEmpNet" style="font-size:12.5px;color:#fff;margin-bottom:10px;">Beneficio neto tras suscripción VIP ($35): <b>+$285 USD/mes</b></div>
+        <a href="https://wa.me/584121788766?text=Hola%20Jose%20Nery,%20calcule%20mi%20ROI%20en%20la%20web%20y%20quiero%20activar%20la%20Membresia%20VIP%20($35/mes)" target="_blank" class="btn btn-vip" style="width:100%;justify-content:center;">Solicitar Acceso VIP</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DIAGNÓSTICO RÁPIDO DE HABILITACIÓN RUP / RNC / OFAC -->
+<section id="diagnostico">
+  <div class="sec-head">
+    <h2 data-i18n="diagTitle">✅ Diagnóstico Rápido: ¿Tu Empresa Califica para Contratar?</h2>
+    <p data-i18n="diagSub">Selecciona tu estatus actual en 3 pasos para verificar tu nivel de habilitación ante PDVSA, empresas mixtas y operadoras con licencia OFAC.</p>
+  </div>
+  <div class="diag-box">
+    <div class="diag-grid">
+      <div class="field">
+        <label>1. Estado del Registro Nacional de Contratistas (RNC)</label>
+        <select id="dRnc" onchange="runDiag()">
+          <option value="ok">Vigente y actualizado (con NFEC)</option>
+          <option value="proc">En trámite / por actualizar</option>
+          <option value="no">Aún no tengo RNC (Firma / Empresa nueva)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>2. Registro RUP / RAC PDVSA y Solvencias (IVSS, INCES, FAOV)</label>
+        <select id="dRup" onchange="runDiag()">
+          <option value="ok">Inscrito en RUP/RAC + Solvencias al día</option>
+          <option value="solv">Tengo solvencias, me falta RUP/RAC</option>
+          <option value="no">Solo opero como suplidor comercial directo</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>3. Zona / Bloque Principal donde Operas</label>
+        <select id="dZone" onchange="runDiag()">
+          <option value="Ayacucho / San Tomé (Chevron GL 50A)">Ayacucho / San Tomé (Chevron GL 50A)</option>
+          <option value="Junín / Pariaguán – Zuata (Eni / ONGC)">Junín / Pariaguán – Zuata (Eni / ONGC)</option>
+          <option value="Carabobo / Morichal – Temblador">Carabobo / Morichal – Temblador</option>
+          <option value="Occidente / Boscán – Costa Oriental">Occidente / Boscán – Costa Oriental</option>
+        </select>
+      </div>
+    </div>
+    <div class="diag-out" id="diagOutput"></div>
+  </div>
+</section>
+
+<!-- CORPORATE GOVERNANCE, FCPA & OFAC COMPLIANCE -->
+<section id="compliance">
+  <div class="sec-head">
+    <h2 data-i18n="compTitle">🛡️ Corporate Governance, FCPA & OFAC Compliance</h2>
+    <p data-i18n="compSub">Estándares internacionales de cumplimiento normativo, transparencia documental y protección de datos para operadoras e inversionistas.</p>
+  </div>
+  <div class="comp-grid">
+    <div class="comp-card">
+      <h3><i class="fa-solid fa-scale-balanced" style="color:var(--accent2)"></i> <span data-i18n="c1t">OFAC General Licenses Alignment</span></h3>
+      <p data-i18n="c1d">Clasificación explícita de operadoras y campos según las Licencias Generales vigentes del Departamento del Tesoro de EE. UU. (GL 50A, GL 48D, GL 46E y GL 49B), facilitando la debida diligencia (Due Diligence) previa a cualquier cotización.</p>
+    </div>
+    <div class="comp-card" style="border-top-color:var(--success)">
+      <h3><i class="fa-solid fa-shield-halved" style="color:var(--success)"></i> <span data-i18n="c2t">Anti-Corruption & FCPA Policy</span></h3>
+      <p data-i18n="c2d">VenePetrol Intel opera bajo política de tolerancia cero frente al soborno y la corrupción, alineada con los principios de la Ley de Prácticas Corruptas en el Extranjero (FCPA) y estándares éticos de procura corporativa.</p>
+    </div>
+    <div class="comp-card" style="border-top-color:var(--vip)">
+      <h3><i class="fa-solid fa-user-lock" style="color:var(--vip)"></i> <span data-i18n="c3t">Data Privacy & Non-Sensitive Mapping</span></h3>
+      <p data-i18n="c3d">La cartografía satelital utiliza exclusivamente coordenadas referenciales de frentes operativos y corredores públicos, protegiendo la seguridad física de activos críticos y la confidencialidad comercial de nuestros suscriptores.</p>
+    </div>
+  </div>
+</section>
+
+<!-- EXECUTIVE BRIEFING SCHEDULER (EST HOUSTON / CARACAS) -->
+<section id="briefing">
+  <div class="exec-box">
+    <span class="exec-badge">🇺🇸 / 🇻🇪 EXECUTIVE BRIEFING & DEMO · EST (HOUSTON / CARACAS)</span>
+    <h2 style="font-size:22px;margin-bottom:6px;" data-i18n="brTitle">Schedule an Executive Briefing / Agendar Presentación Corporativa</h2>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:16px;" data-i18n="brSub">Coordina una videollamada ejecutiva de 20 minutos (Zoom / Google Meet) para alianzas estratégicas, procura corporativa al mayor o adquisición de licencias empresariales.</p>
+    <div class="form-row">
+      <div class="field"><label>Executive Name & Title / Nombre y Cargo</label><input id="bName" placeholder="Ex: John Miller - Procurement Director"/></div>
+      <div class="field"><label>Corporate Email / Correo Corporativo</label><input id="bEmail" type="email" placeholder="name@company.com"/></div>
+    </div>
+    <div class="form-row">
+      <div class="field"><label>Preferred Date & Time (EST Houston / Caracas)</label><input id="bDate" type="text" placeholder="Ex: Thursday 10:30 AM EST"/></div>
+      <div class="field"><label>Meeting Platform / Modalidad</label>
+        <select id="bPlat">
+          <option>Zoom Video Conference</option>
+          <option>Google Meet</option>
+          <option>Microsoft Teams</option>
+          <option>Direct Executive Call / WhatsApp</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;">
+      <button class="btn btn-blue" style="flex:1;min-width:220px;justify-content:center;padding:11px;" onclick="bookBriefing('wa')"><i class="fa-solid fa-calendar-check"></i> Confirm Executive Briefing (WhatsApp)</button>
+      <button class="btn btn-outline" style="flex:1;min-width:220px;justify-content:center;padding:11px;" onclick="bookBriefing('mail')"><i class="fa-solid fa-envelope"></i> Email Venepetrolintel3D@gmail.com</button>
+    </div>
+  </div>
+</section>
+
+<!-- BOLETÍN INFORMATIVO PETROLERO ACTUALIZABLE -->
+<section id="boletin">
+  <div class="sec-head">
+    <h2 data-i18n="newsTitle">📰 Boletín Informativo del Sector Petrolero</h2>
+    <p data-i18n="newsSub">Actualidad operativa, convocatorias públicas de procura, actividad de taladros y marco regulatorio para contratistas en Venezuela.</p>
+  </div>
+
+  <div class="news-toolbar">
+    <div class="news-tabs">
+      <button class="ntab active" onclick="filterNews('ALL',this)" data-i18n="ntAll">Todas las Noticias</button>
+      <button class="ntab" onclick="filterNews('faja',this)" data-i18n="ntFaja">Faja & Taladros</button>
+      <button class="ntab" onclick="filterNews('licitacion',this)" data-i18n="ntLic">Convocatorias RUP/RNC</button>
+      <button class="ntab" onclick="filterNews('ofac',this)" data-i18n="ntOfac">Licencias OFAC & Mercado</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span id="newsSyncStatus" style="font-size:11px;color:var(--success);">● Actualizado hoy</span>
+      <button class="btn btn-outline" style="padding:5px 10px;font-size:11.5px;" onclick="refreshLiveNews()"><i class="fa-solid fa-rotate"></i> <span data-i18n="btnRefresh">Actualizar</span></button>
+    </div>
+  </div>
+
+  <div class="news-grid" id="newsGrid"></div>
+</section>
+
+<section id="modulos">
+  <div class="sec-head">
+    <h2 data-i18n="modTitle">Una Plataforma Diseñada para la Oficina y el Taladro</h2>
+    <p data-i18n="modSub">Todo lo que necesita un jefe de procura, gerente de operaciones o transportista petrolero en Venezuela.</p>
+  </div>
+  <div class="grid-3">
+    <div class="card">
+      <div class="card-icon" style="color:#fb923c"><i class="fa-solid fa-boxes-packing"></i></div>
+      <h3 data-i18n="m1t">Mesa de Procura Inteligente (RFQ)</h3>
+      <p data-i18n="m1d">Publicación de requerimientos abiertos de dotación EPP, válvulas, tubería, repuestos y flotas 4x4. Los compradores solicitan y los proveedores envían ofertas directas.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon" style="color:var(--accent)"><i class="fa-solid fa-map-location-dot"></i></div>
+      <h3 data-i18n="m2t">Mapa Satelital, Taladros y Ductos</h3>
+      <p data-i18n="m2d">Ubicación referencial de 28 campos, frentes activos de perforación/workover, corredores de oleoductos/gasoductos y cobertura celular real (Movilnet, Digitel, Movistar).</p>
+    </div>
+    <div class="card">
+      <div class="card-icon" style="color:#ef4444"><i class="fa-solid fa-truck-monster"></i></div>
+      <h3 data-i18n="m3t">Asistencia Logística y Gasoil en Ruta</h3>
+      <p data-i18n="m3d">Directorio geolocalizado de estaciones con gasoil, talleres de maquinaria pesada, caucheras 24h/12h, paradores viales y alertas de carretera en la Faja y Occidente.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon" style="color:var(--accent2)"><i class="fa-solid fa-calculator"></i></div>
+      <h3 data-i18n="m4t">Calculadora Procura BCV / USDT en Vivo</h3>
+      <p data-i18n="m4d">Cotizador automático con margen administrativo, IVA y conversión instantánea entre Dólares, Bolívares a tasa oficial BCV y referencia USDT actualizada del día.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon" style="color:var(--vip)"><i class="fa-solid fa-id-card-clip"></i></div>
+      <h3 data-i18n="m5t">Personal y Maquinaria Certificada</h3>
+      <p data-i18n="m5d">Base de datos verificada de soldadores 6G, inspectores SIHO-A, cuadrillas workover, grúas telescópicas, cama baja y camiones vacuum listos para movilización.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon" style="color:var(--success)"><i class="fa-solid fa-scale-balanced"></i></div>
+      <h3 data-i18n="m6t">Monitor OFAC & Requisitos RUP / RNC</h3>
+      <p data-i18n="m6d">Guía actualizada de Licencias Generales OFAC vigentes (50A, 48D, 46E, 49B) y lista de verificación para registro RNC y RUP/RAC ante PDVSA y empresas mixtas.</p>
+    </div>
+  </div>
+</section>
+
+<section id="planes">
+  <div class="sec-head">
+    <h2 data-i18n="plTitle">Planes Comerciales & Promoción de Lanzamiento</h2>
+    <p data-i18n="plSub">Posiciona tu negocio frente a miles de transportistas y contratistas o desbloquea inteligencia VIP.</p>
+  </div>
+  <div class="pricing-grid">
+    <div class="price-card">
+      <div>
+        <span class="price-tag" style="color:var(--accent)">🎁 PROMOCIÓN RUTA</span>
+        <h3>Cortesía Lanzamiento</h3>
+        <div class="price-val">$0 <small>/ 30 días</small></div>
+        <ul class="price-list">
+          <li><i class="fa-solid fa-check"></i> Pin en el mapa por 1 mes gratis</li>
+          <li><i class="fa-solid fa-check"></i> Para talleres pesados, caucheras 24h y paradores</li>
+          <li><i class="fa-solid fa-check"></i> Horario y servicios visibles en ruta</li>
+        </ul>
+      </div>
+      <a href="index.html" class="btn btn-green" style="justify-content:center;">Activar 1 Mes Gratis</a>
+    </div>
+
+    <div class="price-card">
+      <div>
+        <span class="price-tag" style="color:var(--success)">✅ VERIFICADO PRO</span>
+        <h3>Comercio / Equipo Verificado</h3>
+        <div class="price-val">$25 <small>/ mes</small></div>
+        <ul class="price-list">
+          <li><i class="fa-solid fa-check"></i> Insignia oficial <b>VERIFICADO PRO</b></li>
+          <li><i class="fa-solid fa-check"></i> Botón directo a tu WhatsApp</li>
+          <li><i class="fa-solid fa-check"></i> Prioridad en búsquedas de zona</li>
+        </ul>
+      </div>
+      <a href="https://wa.me/584121788766?text=Hola%20Jose%20Nery,%20quiero%20activar%20el%20Sello%20Verificado%20Pro%20($25/mes)%20en%20VenePetrol%20Intel" target="_blank" class="btn btn-outline" style="justify-content:center;">Solicitar Verificación</a>
+    </div>
+
+    <div class="price-card featured">
+      <div>
+        <span class="price-tag" style="color:#d8b4fe">🔒 ACCESO TOTAL B2B</span>
+        <h3>Membresía VIP Empresas</h3>
+        <div class="price-val">$35 <small>/ mes</small></div>
+        <ul class="price-list">
+          <li><i class="fa-solid fa-check"></i> Desbloqueo de todas las fichas VIP</li>
+          <li><i class="fa-solid fa-check"></i> Contacto directo con cuadrillas 6G y grúas</li>
+          <li><i class="fa-solid fa-check"></i> Acceso prioritario a Mesa Procura RFQ</li>
+        </ul>
+      </div>
+      <a href="https://wa.me/584121788766?text=Hola%20Jose%20Nery,%20quiero%20activar%20la%20Membresia%20VIP%20Empresas%20($35/mes)%20en%20VenePetrol%20Intel" target="_blank" class="btn btn-vip" style="justify-content:center;">Activar Clave VIP</a>
+    </div>
+
+    <div class="price-card">
+      <div>
+        <span class="price-tag" style="color:var(--accent2)">🌟 PATROCINIO TOP</span>
+        <h3>Banner Destacado</h3>
+        <div class="price-val">$90 <small>/ mes</small></div>
+        <ul class="price-list">
+          <li><i class="fa-solid fa-check"></i> Banner fijo en la barra lateral de la App</li>
+          <li><i class="fa-solid fa-check"></i> Máxima exposición en todas las capas</li>
+          <li><i class="fa-solid fa-check"></i> Ideal para suplidores EPP y maquinaria</li>
+        </ul>
+      </div>
+      <a href="https://wa.me/584121788766?text=Hola%20Jose%20Nery,%20me%20interesa%20el%20Banner%20Destacado%20($90/mes)%20en%20VenePetrol%20Intel" target="_blank" class="btn btn-accent" style="justify-content:center;">Reservar Banner</a>
+    </div>
+  </div>
+</section>
+
+<section id="contacto">
+  <div class="sec-head">
+    <h2 data-i18n="ctTitle">Contacto Comercial & Alianzas</h2>
+    <p data-i18n="ctSub">¿Deseas cotizar dotación EPP al mayor, registrar tu flota o conversar sobre alianzas corporativas?</p>
+  </div>
+  <div class="contact-box">
+    <div class="form-row">
+      <div class="field"><label>Nombre / Empresa</label><input id="cName" placeholder="Ej: Ing. Carlos Pérez / Inversiones Oriente"/></div>
+      <div class="field"><label>Teléfono / WhatsApp</label><input id="cPhone" placeholder="Ej: +58 414-0000000"/></div>
+    </div>
+    <div class="field"><label>Motivo de Contacto</label>
+      <select id="cTopic">
+        <option>Cotizar Procura / Dotación EPP al Mayor</option>
+        <option>Activar Membresía VIP ($35/mes)</option>
+        <option>Registrar Taller / Cauchera / Parador (1 Mes Gratis)</option>
+        <option>Registrar Personal o Maquinaria Certificada</option>
+        <option>Alianza Corporativa / Patrocinio</option>
+      </select>
+    </div>
+    <div class="field"><label>Mensaje o Requerimiento</label><textarea id="cMsg" rows="3" placeholder="Indica zona de operación (El Tigre, Pariaguán, Morichal, Zulia...) y detalles..."></textarea></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <button class="btn btn-green" style="flex:1;min-width:210px;justify-content:center;padding:12px;" onclick="sendContactWA()"><i class="fa-brands fa-whatsapp"></i> Enviar por WhatsApp</button>
+      <button class="btn btn-outline" style="flex:1;min-width:210px;justify-content:center;padding:12px;" onclick="sendContactEmail()"><i class="fa-solid fa-envelope"></i> Enviar a Venepetrolintel3D@gmail.com</button>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div style="margin-bottom:8px;">
+    <div class="ve-flag-wrap">
+      <div class="ve-flag lg">
+        <svg viewBox="0 0 90 60" width="100%" height="100%" preserveAspectRatio="none">
+          <rect width="90" height="20" y="0" fill="#FCE300"/>
+          <rect width="90" height="20" y="20" fill="#0033A0"/>
+          <rect width="90" height="20" y="40" fill="#EF3340"/>
+          <g fill="#FFFFFF">
+            <circle cx="29" cy="34" r="1.4"/><circle cx="32.5" cy="29.5" r="1.4"/>
+            <circle cx="37.5" cy="26.5" r="1.4"/><circle cx="42.5" cy="25" r="1.4"/>
+            <circle cx="47.5" cy="25" r="1.4"/><circle cx="52.5" cy="26.5" r="1.4"/>
+            <circle cx="57.5" cy="29.5" r="1.4"/><circle cx="61" cy="34" r="1.4"/>
+          </g>
+        </svg>
+      </div>
+    </div>
+  </div>
+  <p style="color:#fff;font-weight:700;margin-bottom:4px;">VenePetrol Intel B2B · República Bolivariana de Venezuela</p>
+  <p>Energy Logistics Intelligence, Industrial Procurement (RFQ) & Operational Field Directory.</p>
+  <p style="margin-top:8px;">
+    Direct Desk: <b>+58 412-1788766</b> ·
+    Corporate Email: <a href="mailto:Venepetrolintel3D@gmail.com" style="color:var(--accent2);font-weight:700;">Venepetrolintel3D@gmail.com</a> ·
+    <a href="index.html" style="color:var(--accent);font-weight:700;">Launch Satellite Operational App →</a>
+  </p>
+  <div class="disclaimer">
+    Legal & Compliance Disclaimer: VenePetrol Intel B2B is a private, independent B2B intelligence and procurement platform operating under strict anti-corruption (FCPA) and OFAC regulatory awareness principles. It holds no official affiliation, endorsement, or representation from PDVSA or any listed national or international operator. All trademarks and operational coordinates are presented strictly for public informational and logistics reference.
+  </div>
+</footer>
+
+<script>
+let lang='es';
+let curNewsCat='ALL';
+const CORP_EMAIL="Venepetrolintel3D@gmail.com";
+
+/* Sincronizar Tasas BCV / USDT en el Ticker */
+async function syncTickerRates(){
+  try{
+    const [rOf,rPa]=await Promise.all([
+      fetch('https://ve.dolarapi.com/v1/dolares/oficial'),
+      fetch('https://ve.dolarapi.com/v1/dolares/paralelo')
+    ]);
+    const dOf=await rOf.json();
+    const dPa=await rPa.json();
+    if(dOf&&dOf.promedio) document.getElementById('tkBcv').textContent=`Bs. ${Number(dOf.promedio).toFixed(2)} / USD`;
+    if(dPa&&dPa.promedio) document.getElementById('tkUsdt').textContent=`Bs. ${Number(dPa.promedio).toFixed(2)} / USDT`;
+  }catch(e){
+    document.getElementById('tkBcv').textContent="Bs. Oficial BCV Activa";
+    document.getElementById('tkUsdt').textContent="Ref. USDT Mercado Activa";
+  }
+}
+
+/* Simulador ROI */
+function setRoiMode(m){
+  document.getElementById('roiComercioView').style.display=(m==='comercio')?'grid':'none';
+  document.getElementById('roiEmpresaView').style.display=(m==='empresa')?'grid':'none';
+  document.getElementById('rtabComercio').classList.toggle('active',m==='comercio');
+  document.getElementById('rtabEmpresa').classList.toggle('active',m==='empresa');
+}
+function calcRoi(){
+  const cl=Number(document.getElementById('rngClients').value);
+  const tk=Number(document.getElementById('rngTicket').value);
+  document.getElementById('lblClients').textContent=`${cl} clientes`;
+  document.getElementById('lblTicket').textContent=`$${tk} USD`;
+  const gross=cl*tk;
+  const net=gross-25;
+  const mult=(gross/25).toFixed(1);
+  document.getElementById('resComIncome').textContent=`+$${gross.toLocaleString()} / mes`;
+  document.getElementById('resComNet').innerHTML=`Ganancia neta tras pagar $25/mes: <b>+$${net.toLocaleString()} USD</b> (Retorno ${mult}x)`;
+
+  const vol=Number(document.getElementById('rngBuyVol').value);
+  const pct=Number(document.getElementById('rngSavePct').value);
+  document.getElementById('lblBuyVol').textContent=`$${vol.toLocaleString()} USD`;
+  document.getElementById('lblSavePct').textContent=`${pct}% directo`;
+  const saved=Math.round(vol*(pct/100));
+  const netEmp=saved-35;
+  document.getElementById('resEmpSave').textContent=`+$${saved.toLocaleString()} / mes`;
+  document.getElementById('resEmpNet').innerHTML=`Beneficio neto tras suscripción VIP ($35): <b>+$${netEmp.toLocaleString()} USD/mes</b>`;
+}
+
+/* Diagnóstico Rápido RUP / RNC / OFAC */
+function runDiag(){
+  const rnc=document.getElementById('dRnc').value;
+  const rup=document.getElementById('dRup').value;
+  const zone=document.getElementById('dZone').value;
+  let title='',desc='',color='#10b981';
+
+  if(rnc==='ok'&&rup==='ok'){
+    title='🟢 Nivel Óptimo: Habilitado para Licitaciones Directas y Empresas Mixtas';
+    desc=`Tu empresa cumple con los recaudos base (RNC + RUP/RAC) para licitar en <b>${zone}</b>. Activa la Membresía VIP para contactar directo a jefes de procura y postular en la Mesa RFQ.`;
+    color='#10b981';
+  }else if(rnc==='ok'&&rup!=='ok'){
+    title='🟡 Nivel Intermedio: Apto como Subcontratista y Procura Privada';
+    desc=`Con tu RNC vigente ya puedes vender dotación EPP, flotas o servicios a contratistas principales en <b>${zone}</b> mientras completas el RUP/RAC para contratar directo con operadoras.`;
+    color='#f59e0b';
+  }else{
+    title='🔵 Nivel Inicial: Ideal para Suministro Comercial y Alianzas en Consorcio';
+    desc=`Puedes operar de inmediato como proveedor comercial o aliado en ruta en <b>${zone}</b> (o en consorcio con empresas ya inscritas en RNC/RUP). Te orientamos por WhatsApp o correo.`;
+    color='#38bdf8';
+  }
+
+  const out=document.getElementById('diagOutput');
+  out.style.borderLeftColor=color;
+  out.innerHTML=`
+    <strong style="font-size:14px;color:#fff;display:block;margin-bottom:4px;">${title}</strong>
+    <p style="font-size:12.5px;color:var(--muted);margin-bottom:10px;">${desc}</p>
+    <a href="https://wa.me/584121788766?text=Hola%20Jose%20Nery,%20hice%20el%20Diagnostico%20en%20la%20web%20(Zona:%20${encodeURIComponent(zone)})%20y%20quiero%20activar%20oportunidades%20de%20procura" target="_blank" class="btn btn-accent" style="padding:7px 13px;font-size:12px;"><i class="fa-brands fa-whatsapp"></i> Recibir Oportunidades en ${zone.split('(')[0].trim()}</a>
+  `;
+}
+
+/* Executive Briefing Booking */
+function bookBriefing(mode){
+  const n=document.getElementById('bName').value||'Executive Guest';
+  const em=document.getElementById('bEmail').value||'Not provided';
+  const dt=document.getElementById('bDate').value||'Next available slot EST';
+  const pl=document.getElementById('bPlat').value;
+  if(mode==='wa'){
+    const msg=`Hello Jose Nery, I would like to schedule an *Executive Briefing* for *VenePetrol Intel B2B*:%0A• *Executive:* ${n}%0A• *Corporate Email:* ${em}%0A• *Preferred Time (EST):* ${dt}%0A• *Platform:* ${pl}`;
+    window.open(`https://wa.me/584121788766?text=${msg}`,'_blank');
+  }else{
+    const subj=encodeURIComponent(`Executive Briefing Request - VenePetrol Intel B2B (${n})`);
+    const body=encodeURIComponent(`Hello Jose Nery,\n\nI would like to schedule a 20-minute Executive Briefing regarding VenePetrol Intel B2B.\n\n• Executive Name/Title: ${n}\n• Corporate Email: ${em}\n• Preferred Date/Time (EST): ${dt}\n• Preferred Platform: ${pl}\n\nBest regards.`);
+    window.location.href=`mailto:${CORP_EMAIL}?subject=${subj}&body=${body}`;
+  }
+}
+
+/* Boletín Petrolero */
+const baseNews=[
+  {
+    cat:"faja",tagEs:"Faja & Taladros",tagEn:"Orinoco Belt & Rigs",
+    titleEs:"Reactivación de equipos de perforación y workover impulsa demanda logística en bloques Ayacucho y Carabobo",
+    titleEn:"Drilling and workover rig reactivation boosts logistics demand in Ayacucho and Carabobo blocks",
+    descEs:"Operadoras mixtas y contratistas de servicios incrementan la movilización de cuadrillas, unidades cama baja, camiones vacuum y dotación EPP en los ejes El Tigre – San Tomé y Morichal.",
+    descEn:"Joint ventures and service contractors increase crew mobilization, lowboy units, vacuum trucks and PPE supplies across El Tigre – San Tomé and Morichal.",
+    source:"Boletín Operativo VenePetrol",actionUrl:"index.html",actionEs:"Ver Frentes en Mapa →",actionEn:"View Rigs on Map →"
+  },
+  {
+    cat:"licitacion",tagEs:"Convocatorias RUP / RNC",tagEn:"RUP / RNC Tenders",
+    titleEs:"Actualización obligatoria del RNC y códigos UNSPSC en el Registro Único de Proveedores (RUP / RAC)",
+    titleEn:"Mandatory RNC update and UNSPSC codes in the Unified Supplier Registry (RUP / RAC)",
+    descEs:"Se recuerda a los suplidores de dotación industrial, transporte pesado y mantenimiento mecánico mantener vigente su Nivel Financiero Estimado de Contratación (NFEC) y solvencias laborales.",
+    descEn:"Industrial PPE suppliers, heavy transport and mechanical maintenance contractors are reminded to keep their RNC financial rating and labor clearances up to date.",
+    source:"Fuente Pública RNC / Procura",actionUrl:"index.html",actionEs:"Ir a Mesa Procura RFQ →",actionEn:"Open RFQ Desk →"
+  },
+  {
+    cat:"ofac",tagEs:"Licencias OFAC",tagEn:"OFAC Licenses",
+    titleEs:"Vigencia de Licencias Generales 50A y 48D sostiene contratos de bienes, tecnología y servicios petroleros",
+    titleEn:"Active General Licenses 50A and 48D sustain oilfield goods, technology and service contracts",
+    descEs:"Las autorizaciones vigentes permiten a operadoras europeas y estadounidenses junto a empresas de servicios (Halliburton, SLB, Baker Hughes, Weatherford) ejecutar mantenimiento de pozos.",
+    descEn:"Current authorizations allow US and European operators alongside service firms (Halliburton, SLB, Baker Hughes, Weatherford) to execute well maintenance.",
+    source:"Monitor Regulatorio 2026",actionUrl:"index.html",actionEs:"Consultar Monitor OFAC →",actionEn:"Check OFAC Monitor →"
+  },
+  {
+    cat:"faja",tagEs:"Corredor Junín",tagEn:"Junín Corridor",
+    titleEs:"Incremento de tránsito de carga pesada y cuadrillas en el eje Pariaguán – San Diego de Cabrutica – Zuata",
+    titleEn:"Increased heavy cargo and crew transit along the Pariaguán – San Diego de Cabrutica – Zuata corridor",
+    descEs:"Transportistas reportan mayor flujo de cisternas de diluyente, gandolas y autobuses de rotación de guardia hacia el Bloque Junín, elevando la necesidad de caucheras 24h y paradores.",
+    descEn:"Carriers report higher flow of diluent tankers, heavy trucks and shift-rotation buses toward Junín Block, raising demand for 24h tire shops and rest stops.",
+    source:"Reporte Vial Faja",actionUrl:"index.html",actionEs:"Ver Ruta y Paradores →",actionEn:"View Route & Stops →"
+  },
+  {
+    cat:"licitacion",tagEs:"Procura Directa",tagEn:"Direct Procurement",
+    titleEs:"Contratistas de Oriente y Occidente priorizan proveedores con stock inmediato de botas caña alta y bragas ignífugas",
+    titleEn:"Eastern and Western contractors prioritize suppliers with immediate stock of high-top oil boots and FR coveralls",
+    descEs:"Ante el arranque de nuevas guardias de mantenimiento, los departamentos de compras exigen certificaciones COVENIN/ANSI y cotizaciones duales en USD y Bolívares a tasa BCV.",
+    descEn:"With new maintenance shifts starting, procurement departments require COVENIN/ANSI certifications and dual quotes in USD and BCV Bolivars.",
+    source:"Central Procura B2B",actionUrl:"index.html",actionEs:"Cotizar en Calculadora →",actionEn:"Quote in Calculator →"
+  },
+  {
+    cat:"ofac",tagEs:"Occidente & Gas",tagEn:"Western Basin & Gas",
+    titleEs:"Proyectos gasíferos en el oriente del país y rehabilitación lacustre en el Lago de Maracaibo marcan agenda de inversión",
+    titleEn:"Eastern gas projects and Lake Maracaibo rehabilitation lead the 2026 investment agenda",
+    descEs:"El desarrollo de campos costa afuera en Sucre y el reacondicionamiento de pozos en Boscán, Tía Juana y Lagunillas impulsan la contratación de soldadores 6G y flotas 4x4.",
+    descEn:"Offshore gas development in Sucre and well workovers in Boscán, Tía Juana and Lagunillas drive demand for 6G welders and 4x4 fleets.",
+    source:"Panorama Energético",actionUrl:"index.html",actionEs:"Explorar Zulia y Oriente →",actionEn:"Explore Zulia & East →"
+  }
+];
+
+let liveNewsItems=[...baseNews];
+
+function renderNews(){
+  const grid=document.getElementById('newsGrid');
+  const filtered=liveNewsItems.filter(n=>curNewsCat==='ALL'||n.cat===curNewsCat);
+  grid.innerHTML=filtered.map(n=>{
+    const cls=n.cat==='licitacion'?'lic':(n.cat==='ofac'?'ofac':'');
+    const tag=lang==='en'?n.tagEn:n.tagEs;
+    const title=lang==='en'?n.titleEn:n.titleEs;
+    const desc=lang==='en'?n.descEn:n.descEs;
+    const act=lang==='en'?n.actionEn:n.actionEs;
+    return `
+      <article class="news-card">
+        <div>
+          <div class="news-meta">
+            <span class="news-tag ${cls}">${tag}</span>
+            <span style="color:var(--muted);">${n.date||'2026'}</span>
+          </div>
+          <h3>${title}</h3>
+          <p>${desc}</p>
+        </div>
+        <div class="news-foot">
+          <span style="color:var(--muted);"><i class="fa-regular fa-newspaper"></i> ${n.source}</span>
+          <a href="${n.actionUrl}" target="${n.external?'_blank':'_self'}" style="color:var(--accent);font-weight:700;">${act}</a>
+        </div>
+      </article>
+    `;
+  }).join('');
+}
+
+function filterNews(cat,btn){
+  curNewsCat=cat;
+  document.querySelectorAll('.ntab').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  renderNews();
+}
+
+async function refreshLiveNews(){
+  const st=document.getElementById('newsSyncStatus');
+  st.textContent=lang==='en'?"🔄 Syncing industry feed...":"🔄 Sincronizando titulares...";
+  st.style.color="#38bdf8";
+  try{
+    const rssUrl=encodeURIComponent("https://news.google.com/rss/search?q=petroleo+PDVSA+Venezuela+Faja+Orinoco&hl=es-419&gl=VE&ceid=VE:es-419");
+    const res=await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${rssUrl}`);
+    const data=await res.json();
+    if(data&&data.status==='ok'&&Array.isArray(data.items)&&data.items.length>0){
+      const fetched=data.items.slice(0,3).map(it=>({
+        cat:"faja",
+        tagEs:"Titular en Vivo",tagEn:"Live Headline",
+        titleEs:it.title,titleEn:it.title,
+        descEs:"Nota informativa externa del sector energético y petrolero venezolano recopilada en tiempo real para consulta de contratistas.",
+        descEn:"External Venezuelan oil & energy news item synced in real time for contractor reference.",
+        source:it.author||"Prensa Energética",
+        date:(it.pubDate||'').split(' ')[0],
+        actionUrl:it.link,
+        external:true,
+        actionEs:"Leer Fuente →",actionEn:"Read Source →"
+      }));
+      liveNewsItems=[...fetched,...baseNews];
+      const hora=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+      st.textContent=lang==='en'?`● Live updated (${hora})`:`● Actualizado en vivo (${hora})`;
+      st.style.color="#10b981";
+    }else{
+      throw new Error("Empty feed");
+    }
+  }catch(e){
+    liveNewsItems=[...baseNews];
+    st.textContent=lang==='en'?"● Sector bulletin up to date":"● Boletín sectorial al día";
+    st.style.color="#10b981";
+  }
+  renderNews();
+}
+
+const dict={
+  es:{
+    navRoi:"Simulador ROI",navComp:"Compliance FCPA/OFAC",navBrief:"Executive Briefing",navNews:"Boletín",navApp:"Abrir App en Vivo",
+    heroPill:"VENEZUELA · ORINOCO OIL BELT · EASTERN BASIN · WESTERN MARACAIBO",
+    heroTitle:"Inteligencia Operativa, <span>Procura RFQ</span> y Logística en Ruta para la Industria Petrolera",
+    heroSub:"Conectamos operadoras internacionales, contratistas nacionales, proveedores HSE/API y flotas pesadas en una plataforma B2B auditada con mapa satelital, tasas BCV/USDT en vivo y cumplimiento OFAC/FCPA.",
+    ctaApp:"Entrar a la App Interactiva",ctaBrief:"Agendar Reunión Ejecutiva",ctaRoi:"Calcular Retorno (ROI)",
+    st1:"Operadoras & Contratistas",st2:"Campos & Frentes Taladro",st3:"Estándar Compliance & OFAC",st4:"Tasas BCV / USDT & Clima",
+    roiTitle:"📈 Simulador Interactivo de Ganancia y Retorno (ROI)",roiSub:"Mueve los controles con tus propios números y comprueba cuánto factura tu negocio o cuánto ahorra tu empresa en VenePetrol Intel.",
+    diagTitle:"✅ Diagnóstico Rápido: ¿Tu Empresa Califica para Contratar?",diagSub:"Selecciona tu estatus actual en 3 pasos para verificar tu nivel de habilitación ante PDVSA, empresas mixtas y operadoras con licencia OFAC.",
+    compTitle:"🛡️ Corporate Governance, FCPA & OFAC Compliance",compSub:"Estándares internacionales de cumplimiento normativo, transparencia documental y protección de datos para operadoras e inversionistas.",
+    c1t:"OFAC General Licenses Alignment",c1d:"Clasificación explícita de operadoras y campos según las Licencias Generales vigentes del Departamento del Tesoro de EE. UU. (GL 50A, GL 48D, GL 46E y GL 49B), facilitando la debida diligencia (Due Diligence) previa a cualquier cotización.",
+    c2t:"Anti-Corruption & FCPA Policy",c2d:"VenePetrol Intel opera bajo política de tolerancia cero frente al soborno y la corrupción, alineada con los principios de la Ley de Prácticas Corruptas en el Extranjero (FCPA) y estándares éticos de procura corporativa.",
+    c3t:"Data Privacy & Non-Sensitive Mapping",c3d:"La cartografía satelital utiliza exclusivamente coordenadas referenciales de frentes operativos y corredores públicos, protegiendo la seguridad física de activos críticos y la confidencialidad comercial de nuestros suscriptores.",
+    brTitle:"Schedule an Executive Briefing / Agendar Presentación Corporativa",brSub:"Coordina una videollamada ejecutiva de 20 minutos (Zoom / Google Meet) para alianzas estratégicas, procura corporativa al mayor o adquisición de licencias empresariales.",
+    newsTitle:"📰 Boletín Informativo del Sector Petrolero",newsSub:"Actualidad operativa, convocatorias públicas de procura, actividad de taladros y marco regulatorio para contratistas en Venezuela.",
+    ntAll:"Todas las Noticias",ntFaja:"Faja & Taladros",ntLic:"Convocatorias RUP/RNC",ntOfac:"Licencias OFAC & Mercado",btnRefresh:"Actualizar",
+    modTitle:"Una Plataforma Diseñada para la Oficina y el Taladro",
+    modSub:"Todo lo que necesita un jefe de procura, gerente de operaciones o transportista petrolero en Venezuela.",
+    m1t:"Mesa de Procura Inteligente (RFQ)",m1d:"Publicación de requerimientos abiertos de dotación EPP, válvulas, tubería, repuestos y flotas 4x4. Los compradores solicitan y los proveedores envían ofertas directas.",
+    m2t:"Mapa Satelital, Taladros y Ductos",m2d:"Ubicación referencial de 28 campos, frentes activos de perforación/workover, corredores de oleoductos/gasoductos y cobertura celular real (Movilnet, Digitel, Movistar).",
+    m3t:"Asistencia Logística y Gasoil en Ruta",m3d:"Directorio geolocalizado de estaciones con gasoil, talleres de maquinaria pesada, caucheras 24h/12h, paradores viales y alertas de carretera en la Faja y Occidente.",
+    m4t:"Calculadora Procura BCV / USDT en Vivo",m4d:"Cotizador automático con margen administrativo, IVA y conversión instantánea entre Dólares, Bolívares a tasa oficial BCV y referencia USDT actualizada del día.",
+    m5t:"Personal y Maquinaria Certificada",m5d:"Base de datos verificada de soldadores 6G, inspectores SIHO-A, cuadrillas workover, grúas telescópicas, cama baja y camiones vacuum listos para movilización.",
+    m6t:"Monitor OFAC & Requisitos RUP / RNC",m6d:"Guía actualizada de Licencias Generales OFAC vigentes (50A, 48D, 46E, 49B) y lista de verificación para registro RNC y RUP/RAC ante PDVSA y empresas mixtas.",
+    plTitle:"Planes Comerciales & Promoción de Lanzamiento",plSub:"Posiciona tu negocio frente a miles de transportistas y contratistas o desbloquea inteligencia VIP.",
+    ctTitle:"Contacto Comercial & Alianzas",ctSub:"¿Deseas cotizar dotación EPP al mayor, registrar tu flota o conversar sobre alianzas corporativas?"
+  },
+  en:{
+    navRoi:"ROI Simulator",navComp:"FCPA/OFAC Compliance",navBrief:"Executive Briefing",navNews:"Bulletin",navApp:"Launch Live App",
+    heroPill:"VENEZUELA · ORINOCO OIL BELT · EASTERN BASIN · WESTERN MARACAIBO",
+    heroTitle:"Operational Intelligence, <span>RFQ Procurement</span> & Route Logistics for Venezuela's Oil Industry",
+    heroSub:"Connecting international operators, local contractors, HSE/API suppliers and heavy fleets on a compliance-driven B2B platform with satellite mapping, live BCV/USDT rates and OFAC/FCPA governance.",
+    ctaApp:"Open Interactive App",ctaBrief:"Schedule Executive Briefing",ctaRoi:"Calculate ROI",
+    st1:"Operators & Contractors",st2:"Oil Fields & Active Rigs",st3:"Compliance & OFAC Standard",st4:"Live BCV / USDT & Weather",
+    roiTitle:"📈 Interactive Profit & ROI Simulator",roiSub:"Adjust the sliders with your own numbers to see how much extra revenue or procurement savings your business achieves on VenePetrol Intel.",
+    diagTitle:"✅ Quick Check: Does Your Company Qualify for Oilfield Contracts?",diagSub:"Select your current status in 3 steps to check eligibility with PDVSA, JVs and OFAC-licensed operators.",
+    compTitle:"🛡️ Corporate Governance, FCPA & OFAC Compliance",compSub:"International regulatory compliance standards, documentary transparency and data protection for operators and investors.",
+    c1t:"OFAC General Licenses Alignment",c1d:"Explicit classification of operators and fields under active US Treasury General Licenses (GL 50A, GL 48D, GL 46E & GL 49B), streamlining pre-quote due diligence.",
+    c2t:"Anti-Corruption & FCPA Policy",c2d:"VenePetrol Intel operates under a zero-tolerance anti-bribery policy aligned with US Foreign Corrupt Practices Act (FCPA) principles and corporate procurement ethics.",
+    c3t:"Data Privacy & Non-Sensitive Mapping",c3d:"Satellite mapping uses strictly public reference coordinates of operational fronts and corridors, safeguarding critical infrastructure and subscriber commercial confidentiality.",
+    brTitle:"Schedule an Executive Briefing",brSub:"Book a 20-minute executive video call (Zoom / Google Meet / Teams) for strategic partnerships, wholesale procurement or enterprise licensing.",
+    newsTitle:"📰 Oil & Gas Sector Information Bulletin",newsSub:"Operational updates, public procurement notices, rig activity and regulatory framework for contractors in Venezuela.",
+    ntAll:"All News",ntFaja:"Orinoco Belt & Rigs",ntLic:"RUP/RNC Tenders",ntOfac:"OFAC Licenses & Market",btnRefresh:"Refresh",
+    modTitle:"Built for Both Procurement Offices and Drilling Rigs",
+    modSub:"Everything a procurement officer, operations manager or heavy transport contractor needs in Venezuela.",
+    m1t:"Smart Procurement Desk (RFQ)",m1d:"Open purchase requests for PPE kits, valves, piping, spare parts and 4x4 fleets. Buyers submit RFQs and verified suppliers send direct quotes.",
+    m2t:"Satellite Map, Active Rigs & Pipelines",m2d:"Reference locations of 28 oil fields, active drilling/workover fronts, pipeline corridors and real mobile signal coverage (Movilnet, Digitel, Movistar).",
+    m3t:"Roadside Logistics & Diesel Stations",m3d:"Geolocated directory of diesel stations, heavy machinery workshops, 24h/12h tire shops, highway rest stops and road alerts.",
+    m4t:"Live BCV / USDT Procurement Calculator",m4d:"Automated budget calculator with admin margin, VAT and real-time conversion between USD, official BCV Bolivars and daily USDT market rates.",
+    m5t:"Certified Personnel & Heavy Equipment",m5d:"Verified database of 6G welders, SIHO-A inspectors, workover crews, telescopic cranes, lowboys and vacuum trucks ready for deployment.",
+    m6t:"OFAC Monitor & RUP / RNC Compliance",m6d:"Up-to-date guide on active OFAC General Licenses (50A, 48D, 46E, 49B) and checklist for RNC and PDVSA RUP/RAC vendor registration.",
+    plTitle:"Commercial Plans & Launch Offer",plSub:"Position your business in front of active oilfield fleets or unlock VIP procurement intelligence.",
+    ctTitle:"Commercial Contact & Partnerships",ctSub:"Need wholesale PPE quotes, fleet registration or corporate partnerships?"
+  }
+};
+
+function toggleLang(){
+  lang=(lang==='es'?'en':'es');
+  document.getElementById('langBtn').innerHTML=`<i class="fa-solid fa-globe"></i> ${lang==='es'?'EN':'ES'}`;
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const k=el.getAttribute('data-i18n');
+    if(dict[lang][k]){
+      if(k==='heroTitle') el.innerHTML=dict[lang][k];
+      else el.textContent=dict[lang][k];
+    }
+  });
+  renderNews();
+}
+
+function sendContactWA(){
+  const n=document.getElementById('cName').value;
+  const p=document.getElementById('cPhone').value;
+  const t=document.getElementById('cTopic').value;
+  const m=document.getElementById('cMsg').value;
+  const txt=`Hola José Nery, contacto desde la *Web Corporativa VenePetrol Intel*:%0A• *Nombre/Empresa:* ${n}%0A• *Teléfono:* ${p}%0A• *Motivo:* ${t}%0A• *Mensaje:* ${m}`;
+  window.open(`https://wa.me/584121788766?text=${txt}`,'_blank');
+}
+
+function sendContactEmail(){
+  const n=document.getElementById('cName').value||'Cliente B2B';
+  const p=document.getElementById('cPhone').value||'No indicado';
+  const t=document.getElementById('cTopic').value;
+  const m=document.getElementById('cMsg').value;
+  const subj=encodeURIComponent(`Contacto Comercial VenePetrol Intel - ${t}`);
+  const body=encodeURIComponent(`Hola José Nery,\n\nContacto desde el portal web de VenePetrol Intel B2B:\n\n• Nombre / Empresa: ${n}\n• Teléfono / WhatsApp: ${p}\n• Motivo: ${t}\n• Mensaje:\n${m}\n\nSaludos.`);
+  window.location.href=`mailto:${CORP_EMAIL}?subject=${subj}&body=${body}`;
+}
+
+syncTickerRates();
+calcRoi();
+runDiag();
+renderNews();
+refreshLiveNews();
+</script>
+</body>
+</html>
